@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>CreditPulse — Digital Notebook for Wholesalers</title>
+    <meta name="description" content="Digital notebook for wholesaler — track customer credit, payments, and overdue balances." />
+    <meta name="theme-color" content="#0b1220" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  
+  </head>
+  <body data-theme="dark">
+    <header class="topbar">
+      <button id="backBtn" class="back" hidden aria-label="Back">←</button>
+      <h1 id="title">CreditPulse</h1>
+      <div class="top-actions">
+        <button id="addCustomerBtn" class="primary">+ Customer</button>
+        <button id="logoutBtn" class="secondary">Logout</button>
+      </div>
+    </header>
+
+    <main id="app">
+      <!-- HOME VIEW -->
+      <section id="homeView">
+        <div class="hero">
+          <div class="hero-title" id="heroTitle">CreditPulse</div>
+          <div class="hero-sub">Digital notebook for wholesaler</div>
+        </div>
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Search customers…" />
+        </div>
+        <div id="customerList" class="list"></div>
+        <p id="emptyList" class="empty" hidden>No customers yet. Tap "+ Customer" to add one.</p>
+      </section>
+
+      <!-- REPORT VIEW -->
+      <section id="reportView" hidden>
+        <div class="report-grid">
+          <div class="report-card"><div class="label">Total credit given</div><div class="value" id="rTotalCredit">₹0</div></div>
+          <div class="report-card"><div class="label">Total paid</div><div class="value good" id="rTotalPaid">₹0</div></div>
+          <div class="report-card wide"><div class="label">Outstanding</div><div class="value danger" id="rOutstanding">₹0</div></div>
+          <div class="report-card"><div class="label">Overdue</div><div class="value danger" id="rOverdue">₹0</div></div>
+          <div class="report-card"><div class="label">Customers</div><div class="value" id="rCustomers">0</div></div>
+        </div>
+        <h2 class="section-title">Risky customers</h2>
+        <div id="riskyList" class="list"></div>
+        <p id="emptyRisky" class="empty" hidden>No risky customers — nice work!</p>
+      </section>
+
+      <!-- DETAIL VIEW -->
+      
+        <section id="detailView" hidden>
+        <div id="customerCard" class="card"></div>
+
+  <div id="analysisPanel" class="analysis-panel" hidden>
+    <h3>Risk Analysis</h3>
+    <div class="recommendation" id="analysisRecommendation"></div>
+    <div class="card-actions" id="analysisActions"></div>
+  </div>
+
+  <div class="actions">
+    <button id="addCreditBtn" class="action credit">+ Credit Given</button>
+    <button id="addPaymentBtn" class="action payment">+ Payment Received</button>
+  </div>
+
+  <h2 class="section-title">History</h2>
+  <div id="txnList" class="list"></div>
+  <p id="emptyTxn" class="empty" hidden>No transactions yet.</p>
+     </section>
+       
+      <!-- SETTINGS VIEW -->
+      <section id="settingsView" hidden>
+        <form id="settingsForm" class="settings">
+          <label>App name<input name="appName" required /></label>
+          <label>Default credit limit (₹)<input name="defaultCreditLimit" type="number" min="0" step="1" /></label>
+          <label>Theme
+            <select name="theme">
+              <option value="dark">Dark</option>
+              <option value="light">Light</option>
+            </select>
+          </label>
+          <div class="settings-row"><span>Version</span><span id="versionLabel" class="muted">1.0.0</span></div>
+          <button type="submit" class="primary">Save settings</button>
+          <button type="button" id="clearDataBtn" class="danger-btn">Clear all data</button>
+        </form>
+      </section>
+    </main>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button data-view="home" class="active"><span class="icon">🏠</span><span>Home</span></button>
+      <button data-view="report"><span class="icon">📊</span><span>Report</span></button>
+      <button data-view="settings"><span class="icon">⚙️</span><span>Settings</span></button>
+    </nav>
+
+    <!-- CUSTOMER MODAL -->
+    <!--
+      FIX: Changed method="dialog" → no method attribute.
+      method="dialog" made the browser close the dialog on submit WITHOUT firing
+      the submit event, so the API call in script.js was never reached.
+      Now script.js handles submit via e.preventDefault() + API.createCustomer().
+    -->
+    <dialog id="customerDialog" class="modal">
+      <form id="customerForm">
+        <h3>New Customer</h3>
+        <label>Name<input name="name" required autocomplete="off" /></label>
+        <label>Phone<input name="phone" required inputmode="numeric" autocomplete="off" /></label>
+        <label>Credit limit (₹)<input name="credit_limit" type="number" min="0" step="1" value="0" /></label>
+        <menu>
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <!-- TRANSACTION MODAL -->
+    <!--
+      FIX: Same as above — removed method="dialog" so the submit event fires
+      and script.js can call API.createTransaction().
+    -->
+    <dialog id="txnDialog" class="modal">
+      <form id="txnForm">
+        <h3 id="txnTitle">Add Transaction</h3>
+        <input type="hidden" name="type" />
+        <label>Amount (₹)<input name="amount" type="number" min="1" step="1" required /></label>
+        <label id="dueDateLabel">Due date<input name="due_date" type="date" /></label>
+        <label id="paidDateLabel" hidden>Paid on<input name="paid_date" type="date" /></label>
+        <menu>
+          <button type="button" data-close>Cancel</button>
+          <button type="submit" class="primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <!-- Load API layer first, then UI logic -->
+  <script type="module">
+    import { supabase } from './supabase.js';
+
+    async function checkAuth() {
+      // If we've persisted a session in localStorage, restore it first
+      const stored = localStorage.getItem('cp_session');
+      if (stored) {
+        try {
+          const s = JSON.parse(stored);
+          if (s?.access_token) {
+            await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+          }
+        } catch (e) {
+          console.warn('Failed to restore stored session', e);
+        }
+      }
+
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error('Auth error:', error);
+        return;
+      }
+
+      if (!session) {
+        window.location.href = '/static/login.html';
+        return;
+      }
+
+      console.log('Authenticated:', session.user.id);
+    }
+
+    checkAuth();
+</script>
+  <script type="module" src="/static/js/api.js"></script>
+  <script type="module" src="/static/js/script.js"></script>
+  </body>
+</html>
