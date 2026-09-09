@@ -1,0 +1,77 @@
+{
+  "settings": {
+    "appName": "CreditPulse",
+    "defaultCreditLimit": 5000,
+    "theme": "dark"
+  },
+  "customers": [
+    {
+      "name": "sanskar",
+      "phone": "9853950910",
+      "credit_limit": 5000,
+      "due_date": "2026-07-04",
+      "notes": null,
+      "id": 2,
+      "outstanding": 0,
+      "risk_score": 0
+    },
+    {
+      "name": "sanskar",
+      "phone": "9853950910",
+      "credit_limit": 5000,
+      "due_date": "2026-07-04",
+      "notes": null,
+      "id": 3,
+      "outstanding": 0,
+      "risk_score": 0
+    },
+    {
+      "name": "sa",
+      "phone": "9854328964",
+      "credit_limit": 5000,
+      "due_date": "2026-07-04",
+      "notes": null,
+      "id": 4,
+      "outstanding": 0,
+      "risk_score": 0
+    },
+    {
+      "name": "sanskar",
+      "phone": "9853950910",
+      "credit_limit": 5000,
+      "due_date": "2026-07-04",
+      "notes": null,
+      "id": 5,
+      "outstanding": 0,
+      "risk_score": 0
+    },
+    {
+      "name": "sanskar",
+      "phone": "9853950910",
+      "credit_limit": 5000,
+      "due_date": "2026-07-05",
+      "notes": null,
+      "id": 6,
+      "outstanding": 0,
+      "risk_score": 0
+    }
+  ],
+  "transactions": [
+    {
+      "customer_id": "2",
+      "type": "credit",
+      "amount": 1000,
+      "due_date": "2026-07-04",
+      "created_at": "2026-07-04T18:09:31.515900",
+      "id": 2
+    },
+    {
+      "customer_id": "2",
+      "type": "credit",
+      "amount": 1000,
+      "due_date": "2026-07-04",
+      "created_at": "2026-07-04T18:09:55.013814",
+      "id": 3
+    }
+  ]
+}
