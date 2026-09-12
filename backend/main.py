@@ -27,13 +27,13 @@ app.add_middleware(
 )
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "Frontend"
-
-app.mount(
-    "/static",
-    StaticFiles(directory=str(FRONTEND_DIR)),
-    name="static"
+"""
+#app.mount(
+#   "/static",
+#    StaticFiles(directory=str(FRONTEND_DIR)),
+ #   name="static"
 )
-
+"""
 
 @app.get("/")
 def read_root():
