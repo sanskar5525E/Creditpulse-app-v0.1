@@ -1,5 +1,5 @@
 // UI interactions and DOM updates after backend processing
-import { supabase } from "/static/supabase.js";
+import { supabase } from "supabase.js";
 (function () {
   const $ = (id) => document.getElementById(id);
 
@@ -153,7 +153,7 @@ import { supabase } from "/static/supabase.js";
         console.warn('Sign out failed', e);
       }
       localStorage.removeItem('cp_session');
-      window.location.href = '/static/login.html';
+      window.location.href = '/login.html';
     });
   }
 
