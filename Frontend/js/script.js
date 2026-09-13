@@ -1,5 +1,5 @@
 // UI interactions and DOM updates after backend processing
-import { supabase } from ".,/supabase.js";
+import { supabase } from "../supabase.js";
 (function () {
   const $ = (id) => document.getElementById(id);
 
