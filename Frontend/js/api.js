@@ -1,4 +1,4 @@
-import { supabase } from "./supabase.js";
+import { supabase } from "../supabase.js";
 // Backend API communication layer
 (function () {
 
