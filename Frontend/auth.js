@@ -9,16 +9,23 @@ async function signUp(email, password) {
 }
 
 async function signIn(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  console.log("LOGIN DATA:", data);
+  console.log("LOGIN ERROR:", error);
 
   if (error) {
-    if (error.message.toLowerCase().includes('invalid login credentials')) {
-      throw new Error('No account found or incorrect password.');
-    }
-    throw error;
+    console.error("LOGIN ERROR MESSAGE:", error.message);
+    alert(error.message);
+    return;
   }
 
-  return data;
+  console.log("LOGIN SUCCESS");
+  console.log("USER:", data.user);
+  console.log("SESSION:", data.session);
 }
 
 async function signOut() {
