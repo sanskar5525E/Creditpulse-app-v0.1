@@ -1,6 +1,6 @@
 // auth.js
-import { supabase } from './supabase.js';
-import { clearSession } from './js/session_db.js';
+import { supabase } from '/supabase.js';
+import { clearSession } from '../js/session_db.js';
 
 async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({ email, password });
