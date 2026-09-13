@@ -13,7 +13,7 @@ import { supabase } from "./supabase.js";
     } = await supabase.auth.getSession();
 
     if (!session) {
-      window.location.href = "/static/login.html";
+      window.location.href = "/login.html";
       return;
     }
 
@@ -33,7 +33,7 @@ import { supabase } from "./supabase.js";
     }
 
     if (response.status === 401) {
-      window.location.href = "/static/login.html";
+      window.location.href = "/login.html";
       return;
     }
 
