@@ -19,7 +19,7 @@ app.include_router(frontend_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://your-app.vercel.app"
+        "https://creditpulse-frontend.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
