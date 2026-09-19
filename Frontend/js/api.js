@@ -75,11 +75,11 @@ import { supabase } from "../supabase.js";
     },
 
     getCustomer(id) {
-      return apiCall(`/customers/${id}`);
+      return apiCall(`/api/customers/${id}`);
     },
 
     createCustomer(payload) {
-      return apiCall("/customers", {
+      return apiCall("api/customers", {
         method: "POST",
         body: JSON.stringify(payload),
       });
