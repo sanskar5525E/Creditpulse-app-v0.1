@@ -3,7 +3,7 @@ import { supabase } from "../supabase.js";
 (function () {
 
   // Because FastAPI serves the frontend and API from the same origin.
-  const API_BASE = "https://creditpulse-app-v0-1.onrender.com";
+  const API_BASE = "https://creditpulse-app-v0-1.onrender.com/api";
 
   async function apiCall(endpoint, options = {}) {
     const url = `${API_BASE}${endpoint}`;
@@ -71,15 +71,15 @@ import { supabase } from "../supabase.js";
 
     // --- Customers ---
     listCustomers() {
-      return apiCall("/api/customers");
+      return apiCall("/customers");
     },
 
     getCustomer(id) {
-      return apiCall(`/api/customers/${id}`);
+      return apiCall(`/customers/${id}`);
     },
 
     createCustomer(payload) {
-      return apiCall("api/customers", {
+      return apiCall("/customers", {
         method: "POST",
         body: JSON.stringify(payload),
       });
