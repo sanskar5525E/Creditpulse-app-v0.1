@@ -71,7 +71,7 @@ import { supabase } from "../supabase.js";
 
     // --- Customers ---
     listCustomers() {
-      return apiCall("/customers");
+      return apiCall("/api/customers");
     },
 
     getCustomer(id) {
