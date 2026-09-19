@@ -23,6 +23,9 @@ app.add_middleware(
 from app.routes.customer_routes import router as customer_router
 from app.routes.frontend_compat import router as frontend_router
 
+app.include_router(customer_router)
+app.include_router(frontend_router)
+
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "Frontend"
 """
 #app.mount(
