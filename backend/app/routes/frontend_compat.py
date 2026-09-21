@@ -35,9 +35,7 @@ def patch_settings(
     current_user=Depends(get_current_user)
 ):
     try:
-        user_id = current_user.id
-
-        payload["user_id"] = user_id
+        user_id: str = Depends(get_current_user)
 
         supabase.table("settings").upsert(payload).execute()
 
