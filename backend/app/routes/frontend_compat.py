@@ -8,6 +8,7 @@ from app.services.customer_service import create_customer as create_customer_ser
 from app.services.customer_service import create_transaction as create_transaction_service
 from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
+from app.services.customer_service import list_customers_with_metrics
 from app.auth import get_current_user
 
 router = APIRouter(
@@ -29,16 +30,26 @@ def get_settings():
 
 
 @router.patch("/settings")
-def patch_settings(payload: Dict[str, Any]):
+def patch_settings(
+    payload: Dict[str, Any],
+    current_user=Depends(get_current_user)
+):
     try:
+        user_id = current_user.id
+
+        payload["user_id"] = user_id
+
         supabase.table("settings").upsert(payload).execute()
+
         return payload
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update settings: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update settings: {e}"
+        )
 
 
-
-from app.services.customer_service import list_customers_with_metrics
 
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
