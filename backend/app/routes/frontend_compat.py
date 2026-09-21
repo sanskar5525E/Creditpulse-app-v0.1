@@ -17,16 +17,37 @@ router = APIRouter(
 )
 
 @router.get("/settings")
-def get_settings():
+def get_settings(
+    current_user=Depends(get_current_user)
+):
     try:
-        resp = supabase.table("settings").select("*").limit(1).execute()
+        user_id = current_user
+
+        resp = (
+            supabase
+            .table("settings")
+            .select("*")
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+
         if resp.data:
             return resp.data[0]
-        raise HTTPException(status_code=404, detail="Settings not found")
+
+        raise HTTPException(
+            status_code=404,
+            detail="Settings not found"
+        )
+
     except HTTPException:
         raise
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get settings: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get settings: {e}"
+        )
 
 
 @router.patch("/settings")
@@ -35,18 +56,35 @@ def patch_settings(
     current_user=Depends(get_current_user)
 ):
     try:
-        user_id: str = Depends(get_current_user)
+        user_id = current_user
 
-        supabase.table("settings").upsert(payload).execute()
+        # Prevent changing ownership
+        payload.pop("user_id", None)
 
-        return payload
+        resp = (
+            supabase
+            .table("settings")
+            .update(payload)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not resp.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Settings not found"
+            )
+
+        return resp.data[0]
+
+    except HTTPException:
+        raise
 
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to update settings: {e}"
         )
-
 
 
 @router.get("/customers")
