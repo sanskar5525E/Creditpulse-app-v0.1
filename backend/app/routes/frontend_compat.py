@@ -20,8 +20,6 @@ router = APIRouter(
 def get_settings(
     user_id: str = Depends(get_current_user)
 ):
-    print("AUTH USER ID:", user_id)
-
     try:
         resp = (
             supabase
@@ -32,24 +30,38 @@ def get_settings(
             .execute()
         )
 
-        print("SETTINGS RESULT:", resp.data)
+        if resp.data:
+            return resp.data[0]
 
-        if not resp.data:
+        # Create default settings for this user
+        default_settings = {
+            "user_id": user_id,
+            "defaultCreditLimit": 30000
+        }
+
+        created = (
+            supabase
+            .table("settings")
+            .insert(default_settings)
+            .execute()
+        )
+
+        if not created.data:
             raise HTTPException(
-                status_code=404,
-                detail="Settings not found"
+                status_code=500,
+                detail="Failed to create default settings"
             )
 
-        return resp.data[0]
+        return created.data[0]
 
     except HTTPException:
         raise
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get settings: {e}"
         )
-
 
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
