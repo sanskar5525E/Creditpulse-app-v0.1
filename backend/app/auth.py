@@ -23,8 +23,7 @@ async def get_current_user(
 
     try:
         result = supabase.auth.get_claims(token)
-        claims = result.get("claims") 
-        if hasattr(result, "get") else None
+        claims = result.get("claims") if hasattr(result, "get") else None
 
         if not claims:
             raise HTTPException(status_code=401, detail="Invalid token")
