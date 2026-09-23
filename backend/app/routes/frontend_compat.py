@@ -20,8 +20,7 @@ router = APIRouter(
 def get_settings(
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = current_user["user_id"]
-    token = current_user["token"]
+    user_id = current_user
     db = get_authed_client(token)
 
     try:
