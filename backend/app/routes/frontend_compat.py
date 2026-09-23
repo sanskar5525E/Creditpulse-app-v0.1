@@ -10,7 +10,7 @@ from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
 from app.services.customer_service import list_customers_with_metrics
 from app.auth import get_current_user
-
+from app.auth import get_authed_client
 router = APIRouter(
     prefix="/api",
     tags=["frontend_compat"],
@@ -18,11 +18,15 @@ router = APIRouter(
 
 @router.get("/settings")
 def get_settings(
-    user_id: str = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user)
 ):
+    user_id = current_user["user_id"]
+    token = current_user["token"]
+    db = get_authed_client(token)
+
     try:
         resp = (
-            supabase
+            db
             .table("settings")
             .select("*")
             .eq("user_id", user_id)
@@ -40,7 +44,7 @@ def get_settings(
         }
 
         created = (
-            supabase
+            db
             .table("settings")
             .insert(default_settings)
             .execute()
@@ -62,7 +66,6 @@ def get_settings(
             status_code=500,
             detail=f"Failed to get settings: {e}"
         )
-
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
     try:
