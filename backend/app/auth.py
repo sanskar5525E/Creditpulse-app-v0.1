@@ -47,7 +47,7 @@ async def get_current_user(
                 detail="User ID missing from token"
             )
 
-        return user_id
+        return {"user_id": user_id, "token": token}
 
     except HTTPException:
         raise
