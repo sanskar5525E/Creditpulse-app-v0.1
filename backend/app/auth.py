@@ -56,3 +56,7 @@ async def get_current_user(
             status_code=401,
             detail="Invalid or expired token"
         )
+async def get_authed_client(token: str) -> Client:
+    client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    client.postgrest.auth(token)
+    return client
