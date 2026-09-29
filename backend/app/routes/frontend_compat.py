@@ -10,7 +10,7 @@ from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
 from app.services.customer_service import list_customers_with_metrics
 from app.auth import get_current_user
-from app.auth import get_authed_client
+from app.auth import get_authed_client , get_token
 router = APIRouter(
     prefix="/api",
     tags=["frontend_compat"],
