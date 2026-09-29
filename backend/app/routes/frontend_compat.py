@@ -15,17 +15,16 @@ router = APIRouter(
     prefix="/api",
     tags=["frontend_compat"],
 )
+from fastapi import APIRouter, Depends, HTTPException
+from app.core.supabase_client import supabase  # use the same client your customers queries import
 
 @router.get("/settings")
-def get_settings(
-    current_user: dict = Depends(get_current_user)
-):
-    user_id = current_user
-    
+def get_settings(current_user: dict = Depends(get_current_user)):
+    user_id = current_user["id"] if isinstance(current_user, dict) else current_user
 
     try:
         resp = (
-            db
+            supabase
             .table("settings")
             .select("*")
             .eq("user_id", user_id)
@@ -36,35 +35,24 @@ def get_settings(
         if resp.data:
             return resp.data[0]
 
-        # Create default settings for this user
-        default_settings = {
-            "user_id": user_id,
-            "defaultCreditLimit": 30000
-        }
-
         created = (
-            db
+            supabase
             .table("settings")
-            .insert(default_settings)
+            .insert({"user_id": user_id, "defaultCreditLimit": 30000})
             .execute()
         )
 
         if not created.data:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to create default settings"
-            )
+            raise HTTPException(status_code=500, detail="Failed to create default settings")
 
         return created.data[0]
 
     except HTTPException:
         raise
-
     except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get settings: {e}"
-        )
+        logger.exception("get_settings failed")
+        raise HTTPException(status_code=500, detail=str(e))
+        
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
     try:
