@@ -16,14 +16,20 @@ router = APIRouter(
 )
 from fastapi import APIRouter, Depends, HTTPException
 
+import logging
+from fastapi import APIRouter, Depends, HTTPException
+
+logger = logging.getLogger(__name__)
+
+
 @router.get("/settings")
-def get_settings(current_user: dict = Depends(get_current_user)):
-    user_id = current_user["id"] if isinstance(current_user, dict) else current_user
+def get_settings(current_user: tuple = Depends(get_current_user)):
+    user_id, token = current_user
+    db = get_authed_client(token)
 
     try:
         resp = (
-            supabase
-            .table("settings")
+            db.table("settings")
             .select("*")
             .eq("user_id", user_id)
             .limit(1)
@@ -34,8 +40,7 @@ def get_settings(current_user: dict = Depends(get_current_user)):
             return resp.data[0]
 
         created = (
-            supabase
-            .table("settings")
+            db.table("settings")
             .insert({"user_id": user_id, "defaultCreditLimit": 30000})
             .execute()
         )
@@ -50,6 +55,7 @@ def get_settings(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logger.exception("get_settings failed")
         raise HTTPException(status_code=500, detail=str(e))
+        
         
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
