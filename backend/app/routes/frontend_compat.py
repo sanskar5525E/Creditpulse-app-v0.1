@@ -10,7 +10,7 @@ from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
 from app.services.customer_service import list_customers_with_metrics
 from app.auth import get_current_user
-from app.auth import get_authed_user
+from app.auth import get_authed_client
 router = APIRouter(
     prefix="/api",
     tags=["frontend_compat"],
@@ -24,8 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/settings")
-def get_settings(current_user: tuple = Depends(get_current_user)):
-    user_id, token = current_user
+def get_settings(
+    user_id: str = Depends(get_current_user),
+    token: str = Depends(get_token),
+):
     db = get_authed_client(token)
 
     try:
@@ -55,9 +57,10 @@ def get_settings(current_user: tuple = Depends(get_current_user)):
         raise
     except Exception as e:
         logger.exception("get_settings failed")
-        raise HTTPException(status_code=500, detail=str(e))
-        
-        
+        raise HTTPException(status_code=500, detail="Could not load settings")
+
+
+
 @router.get("/customers")
 def list_customers(current_user: str = Depends(get_current_user)):
     try:
