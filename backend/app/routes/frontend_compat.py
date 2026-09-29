@@ -15,7 +15,6 @@ router = APIRouter(
     tags=["frontend_compat"],
 )
 from fastapi import APIRouter, Depends, HTTPException
-from app.core.supabase_client import supabase  # use the same client your customers queries import
 
 @router.get("/settings")
 def get_settings(current_user: dict = Depends(get_current_user)):
