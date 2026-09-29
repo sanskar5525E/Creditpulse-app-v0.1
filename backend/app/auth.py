@@ -33,10 +33,15 @@ async def get_current_user(
         if not user_id:
             raise HTTPException(status_code=401, detail="User ID missing from token")
 
-        return user_id 
+        return user_id , token
 
     except HTTPException:
         raise
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
         
+def get_authed_client(token: str):
+    """Client that sends the user's JWT so RLS sees auth.uid()."""
+    client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    client.postgrest.auth(token)
+    return client
