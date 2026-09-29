@@ -1,4 +1,4 @@
-from fastapi import Header, HTTPException
+from fastapi import Header, HTTPException , Depends
 from supabase import create_client
 from dotenv import load_dotenv
 import os
