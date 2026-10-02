@@ -100,7 +100,7 @@ def get_customer(customer_id: int, current_user: str = Depends(get_current_user)
 @router.delete("/customers/{customer_id}")
 def delete_customer(customer_id: int, current_user: str = Depends(get_current_user)):
     try:
-        supabase.table("transactions").delete().eq("customer_id", customer_id).eq("user_id", current_user).execute()
+        supabase.table("transactions").delete().eq("customer_id", customer_id).execute()
         supabase.table("customers").delete().eq("id", customer_id).eq("user_id", current_user).execute()
         return {"ok": True}
     except Exception as e:
