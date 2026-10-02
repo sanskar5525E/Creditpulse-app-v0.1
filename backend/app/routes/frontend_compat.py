@@ -100,12 +100,50 @@ def get_customer(customer_id: int, current_user: str = Depends(get_current_user)
 @router.delete("/customers/{customer_id}")
 def delete_customer(customer_id: int, current_user: str = Depends(get_current_user)):
     try:
-        supabase.table("transactions").delete().eq("customer_id", customer_id).execute()
-        supabase.table("customers").delete().eq("id", customer_id).eq("user_id", current_user).execute()
-        return {"ok": True}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete customer: {e}")
+        # Verify customer ownership
+        customer = supabase.table("customers") \
+            .select("id") \
+            .eq("id", customer_id) \
+            .eq("user_id", current_user) \
+            .execute()
 
+        if not customer.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Customer not found"
+            )
+
+        # Delete customer's transactions
+        supabase.table("transactions") \
+            .delete() \
+            .eq("customer_id", customer_id) \
+            .execute()
+
+        # Delete customer
+        result = supabase.table("customers") \
+            .delete() \
+            .eq("id", customer_id) \
+            .eq("user_id", current_user) \
+            .execute()
+
+        if not result.data:
+            raise HTTPException(
+                status_code=500,
+                detail="Customer was not deleted"
+            )
+
+        return {"ok": True, "message": "Customer deleted successfully"}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete customer: {e}"
+        )
+        
+        
+        
 
 @router.post("/transactions")
 def create_transaction(payload: Dict[str, Any], current_user: str = Depends(get_current_user)):
