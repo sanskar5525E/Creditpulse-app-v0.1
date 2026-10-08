@@ -55,7 +55,7 @@ def get_settings(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception :
         logger.exception("get_settings failed")
         raise HTTPException(status_code=500, detail="Could not load settings")
 
