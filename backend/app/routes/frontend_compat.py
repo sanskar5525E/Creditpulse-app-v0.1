@@ -44,7 +44,7 @@ def get_settings(
 
         created = (
             db.table("settings")
-            .insert({"user_id": user_id, "defaultCreditLimit": 30000})
+            .upsert({"user_id": user_id, "defaultCreditLimit": 30000})
             .execute()
         )
 
