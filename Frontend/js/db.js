@@ -1,6 +1,6 @@
 // js/db.js
 const DB_NAME = 'creditpulse_offline';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -22,6 +22,10 @@ function openDB() {
       if (!db.objectStoreNames.contains('settings')) {
         db.createObjectStore('settings', { keyPath: 'key' });
       }
+
+      if (!db.objectStoreNames.contains('pending')) {
+        db.createObjectStore('pending', { keyPath: 'id', autoIncrement: true });
+      }
     };
 
     request.onsuccess = () => resolve(request.result);
@@ -29,120 +33,174 @@ function openDB() {
   });
 }
 
-// ---------- Customers ----------
-export async function getAllCustomers() {
-  const db = await openDB();
+function reqToPromise(req) {
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('customers', 'readonly');
-    const req = tx.objectStore('customers').getAll();
-    req.onsuccess = () => resolve(req.result || []);
+    req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+}
+
+export async function getAllCustomers() {
+  const db = await openDB();
+  const tx = db.transaction('customers', 'readonly');
+  return reqToPromise(tx.objectStore('customers').getAll()).then((rows) => rows || []);
 }
 
 export async function getCustomer(id) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('customers', 'readonly');
-    const req = tx.objectStore('customers').get(id);
-    req.onsuccess = () => resolve(req.result || null);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('customers', 'readonly');
+  const row = await reqToPromise(tx.objectStore('customers').get(id));
+  return row || null;
 }
 
 export async function saveCustomer(customer) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('customers', 'readwrite');
-    const req = tx.objectStore('customers').put(customer);
-    req.onsuccess = () => resolve(customer);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('customers', 'readwrite');
+  await reqToPromise(tx.objectStore('customers').put(customer));
+  return customer;
 }
 
-export async function deleteCustomer(id) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(['customers', 'transactions'], 'readwrite');
-    tx.objectStore('customers').delete(id);
-
-    // Also delete related transactions
-    const index = tx.objectStore('transactions').index('customer_id');
-    const req = index.getAllKeys(id);
-    req.onsuccess = () => {
-      req.result.forEach(key => tx.objectStore('transactions').delete(key));
-    };
-
-    tx.oncomplete = () => resolve(true);
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-// ---------- Transactions ----------
 export async function getTransactionsByCustomer(customerId) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readonly');
-    const index = tx.objectStore('transactions').index('customer_id');
-    const req = index.getAll(customerId);
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('transactions', 'readonly');
+  const index = tx.objectStore('transactions').index('customer_id');
+  const rows = await reqToPromise(index.getAll(customerId));
+  return rows || [];
 }
 
 export async function getAllTransactions() {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readonly');
-    const req = tx.objectStore('transactions').getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('transactions', 'readonly');
+  return reqToPromise(tx.objectStore('transactions').getAll()).then((rows) => rows || []);
 }
 
 export async function saveTransaction(txn) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('transactions', 'readwrite');
-    const req = tx.objectStore('transactions').put(txn);
-    req.onsuccess = () => resolve(txn);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('transactions', 'readwrite');
+  await reqToPromise(tx.objectStore('transactions').put(txn));
+  return txn;
 }
 
-// ---------- Settings ----------
+export async function deleteTransaction(id) {
+  const db = await openDB();
+  const tx = db.transaction('transactions', 'readwrite');
+  await reqToPromise(tx.objectStore('transactions').delete(id));
+  return true;
+}
+
+export async function deleteCustomer(id) {
+  const txns = await getTransactionsByCustomer(id);
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(['customers', 'transactions'], 'readwrite');
+    tx.objectStore('customers').delete(id);
+    for (const t of txns) tx.objectStore('transactions').delete(t.id);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+  return true;
+}
+
+export async function reassignCustomerId(oldId, newCustomer) {
+  const txns = await getTransactionsByCustomer(oldId);
+  const db = await openDB();
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(['customers', 'transactions'], 'readwrite');
+    tx.objectStore('customers').delete(oldId);
+    tx.objectStore('customers').put({ ...newCustomer, _pending: false });
+    for (const t of txns) {
+      tx.objectStore('transactions').put({ ...t, customer_id: newCustomer.id });
+    }
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+  return true;
+}
+
 export async function getSettings() {
   const db = await openDB();
-  return new Promise((resolve) => {
-    const tx = db.transaction('settings', 'readonly');
-    const req = tx.objectStore('settings').get('app');
-    req.onsuccess = () => {
-      resolve(req.result?.value || {
-        appName: 'CreditPulse',
-        defaultCreditLimit: 5000,
-        theme: 'dark',
-        version: '1.0.0'
-      });
-    };
-  });
+  const tx = db.transaction('settings', 'readonly');
+  const row = await reqToPromise(tx.objectStore('settings').get('app'));
+  return row?.value || {
+    appName: 'CreditPulse',
+    defaultCreditLimit: 5000,
+    theme: 'dark',
+    version: '1.0.0',
+  };
 }
 
 export async function saveSettings(settings) {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('settings', 'readwrite');
-    const req = tx.objectStore('settings').put({ key: 'app', value: settings });
-    req.onsuccess = () => resolve(settings);
-    req.onerror = () => reject(req.error);
-  });
+  const tx = db.transaction('settings', 'readwrite');
+  await reqToPromise(tx.objectStore('settings').put({ key: 'app', value: settings }));
+  return settings;
 }
 
 export async function clearAllData() {
   const db = await openDB();
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const tx = db.transaction(['customers', 'transactions'], 'readwrite');
     tx.objectStore('customers').clear();
     tx.objectStore('transactions').clear();
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+  return true;
+}
+
+export async function addPending(item) {
+  const db = await openDB();
+  const tx = db.transaction('pending', 'readwrite');
+  const id = await reqToPromise(tx.objectStore('pending').add({
+    op: item.op,
+    localId: item.localId ?? null,
+    payload: item.payload ?? null,
+    ambiguous: !!item.ambiguous,
+    createdAt: Date.now(),
+  }));
+  return id;
+}
+
+export async function listPending() {
+  const db = await openDB();
+  const tx = db.transaction('pending', 'readonly');
+  const rows = await reqToPromise(tx.objectStore('pending').getAll());
+  return (rows || []).sort((a, b) => a.id - b.id);
+}
+
+export async function removePending(id) {
+  const db = await openDB();
+  const tx = db.transaction('pending', 'readwrite');
+  await reqToPromise(tx.objectStore('pending').delete(id));
+  return true;
+}
+
+export async function clearPending() {
+  const db = await openDB();
+  const tx = db.transaction('pending', 'readwrite');
+  await reqToPromise(tx.objectStore('pending').clear());
+  return true;
+}
+
+export async function dropPendingForLocal(localId) {
+  const all = await listPending();
+  for (const item of all) {
+    const sameCustomer = item.localId === localId || item.payload?.customer_id === localId;
+    if (sameCustomer) await removePending(item.id);
+  }
+}
+
+export async function rewritePendingCustomerId(oldId, newId) {
+  const all = await listPending();
+  const db = await openDB();
+  const tx = db.transaction('pending', 'readwrite');
+  const store = tx.objectStore('pending');
+  for (const item of all) {
+    if (item.payload && item.payload.customer_id === oldId) {
+      store.put({ ...item, payload: { ...item.payload, customer_id: newId } });
+    }
+  }
+  await new Promise((resolve, reject) => {
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error);
   });
