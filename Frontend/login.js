@@ -21,24 +21,16 @@ function clearError() {
 }
 
 // Password show/hide toggle
-togglePasswordBtn.addEventListener('click', () => {
+togglePasswordBtn?.addEventListener('click', (e) => {
+  e.preventDefault();
   const isHidden = passwordInput.type === 'password';
   passwordInput.type = isHidden ? 'text' : 'password';
-  togglePasswordBtn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+  togglePasswordBtn.setAttribute('title', isHidden ? 'Hide password' : 'Show password');
 
-  // Swap icon: open eye (showing) vs eye-with-slash (hidden)
   if (isHidden) {
-    eyeIcon.innerHTML = `
-      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-6.06"></path>
-      <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-3.22 4.44"></path>
-      <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path>
-      <line x1="1" y1="1" x2="23" y2="23"></line>
-    `;
+    eyeIcon.className = 'ti ti-eye-off';
   } else {
-    eyeIcon.innerHTML = `
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
-      <circle cx="12" cy="12" r="3"></circle>
-    `;
+    eyeIcon.className = 'ti ti-eye';
   }
 });
 
@@ -51,9 +43,17 @@ async function handleSignIn(email, password) {
   // Persist session tokens so app can restore without re-login
   try {
     if (data?.session) {
-      const s = { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at };
+      const s = {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at,
+      };
       localStorage.setItem('cp_session', JSON.stringify(s));
-      try { await saveSession(s); } catch (e) { console.warn('session_db save failed', e); }
+      try {
+        await saveSession(s);
+      } catch (e) {
+        console.warn('session_db save failed', e);
+      }
     }
   } catch (e) {
     console.warn('Failed to persist session', e);
@@ -73,9 +73,17 @@ async function handleSignUp(email, password) {
   }
   try {
     if (data?.session) {
-      const s = { access_token: data.session.access_token, refresh_token: data.session.refresh_token, expires_at: data.session.expires_at };
+      const s = {
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        expires_at: data.session.expires_at,
+      };
       localStorage.setItem('cp_session', JSON.stringify(s));
-      try { await saveSession(s); } catch (e) { console.warn('session_db save failed', e); }
+      try {
+        await saveSession(s);
+      } catch (e) {
+        console.warn('session_db save failed', e);
+      }
     }
   } catch (e) {
     console.warn('Failed to persist session', e);
@@ -83,7 +91,7 @@ async function handleSignUp(email, password) {
   window.location.href = '/index.html';
 }
 
-form.addEventListener('submit', async (e) => {
+form?.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearError();
   const email = emailInput.value.trim();
@@ -99,7 +107,7 @@ form.addEventListener('submit', async (e) => {
   }
 });
 
-signUpBtn.addEventListener('click', async () => {
+signUpBtn?.addEventListener('click', async () => {
   clearError();
   const email = emailInput.value.trim();
   const password = passwordInput.value;
@@ -115,6 +123,6 @@ signUpBtn.addEventListener('click', async () => {
     await handleSignUp(email, password);
   } finally {
     signUpBtn.disabled = false;
-    signUpBtn.textContent = 'Sign Up';
+    signUpBtn.textContent = 'Create an account';
   }
 });
