@@ -5,136 +5,451 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>CreditPulse — Digital Notebook for Wholesalers</title>
     <meta name="description" content="Digital notebook for wholesaler — track customer credit, payments, and overdue balances." />
-    <meta name="theme-color" content="#0b1220" />
+    <meta name="theme-color" content="#066fd1" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="apple-touch-icon" href="icon-192.png" />
+
+    <!-- Tabler CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-vendors.min.css" />
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+
+    <!-- Small overrides for CreditPulse -->
     <link rel="stylesheet" href="/css/style.css" />
-  
   </head>
-  <body data-theme="dark">
-    <header class="topbar">
-      <button id="backBtn" class="back" hidden aria-label="Back">←</button>
-      <h1 id="title">CreditPulse</h1>
-      <div class="top-actions">
-        <button id="addCustomerBtn" class="primary">+ Customer</button>
-        <button id="logoutBtn" class="secondary">Logout</button>
+
+  <body>
+    <div class="page">
+      <!-- SIDEBAR -->
+      <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+        <div class="container-fluid">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <h1 class="navbar-brand navbar-brand-autodark">
+            <a href="#" id="brandLink">
+              <span class="navbar-brand-text">CreditPulse</span>
+            </a>
+          </h1>
+
+          <div class="navbar-nav flex-row d-lg-none">
+            <div class="nav-item dropdown">
+              <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                <span class="avatar avatar-sm" style="background-image: url(https://api.dicebear.com/7.x/initials/svg?seed=CP)"></span>
+              </a>
+              <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <a class="dropdown-item" href="#" id="logoutBtnMobile">Logout</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="collapse navbar-collapse" id="sidebar-menu">
+            <ul class="navbar-nav pt-lg-3">
+              <li class="nav-item">
+                <a class="nav-link active" href="#home" data-view="home" id="navHome">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <i class="ti ti-home"></i>
+                  </span>
+                  <span class="nav-link-title">Customers</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#report" data-view="report" id="navReport">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <i class="ti ti-chart-bar"></i>
+                  </span>
+                  <span class="nav-link-title">Reports</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#settings" data-view="settings" id="navSettings">
+                  <span class="nav-link-icon d-md-none d-lg-inline-block">
+                    <i class="ti ti-settings"></i>
+                  </span>
+                  <span class="nav-link-title">Settings</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      <!-- PAGE WRAPPER -->
+      <div class="page-wrapper">
+        <!-- TOP HEADER -->
+        <div class="page-header d-print-none">
+          <div class="container-xl">
+            <div class="row g-2 align-items-center">
+              <div class="col">
+                <div class="page-pretitle" id="pagePretitle">Overview</div>
+                <h2 class="page-title" id="title">Customers</h2>
+              </div>
+              <div class="col-auto ms-auto d-print-none">
+                <div class="btn-list">
+                  <button class="btn btn-primary d-none d-sm-inline-block" id="addCustomerBtn">
+                    <i class="ti ti-plus me-1"></i>
+                    Add Customer
+                  </button>
+                  <button class="btn btn-primary d-sm-none" id="addCustomerBtnMobile">
+                    <i class="ti ti-plus"></i>
+                  </button>
+                  <button class="btn btn-outline-secondary" id="logoutBtn">
+                    <i class="ti ti-logout me-1"></i>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAGE BODY -->
+        <div class="page-body">
+          <div class="container-xl" id="app">
+
+            <!-- ==================== HOME / CUSTOMERS VIEW ==================== -->
+            <section id="homeView">
+              <div class="row row-deck row-cards mb-3">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center">
+                        <div class="me-3">
+                          <span class="avatar avatar-lg bg-primary-lt">
+                            <i class="ti ti-users" style="font-size: 1.5rem;"></i>
+                          </span>
+                        </div>
+                        <div>
+                          <div class="h3 mb-0" id="heroTitle">CreditPulse</div>
+                          <div class="text-secondary">Digital notebook for wholesalers</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Customers</h3>
+                  <div class="card-actions">
+                    <div class="input-icon">
+                      <input type="search" id="searchInput" class="form-control" placeholder="Search customers…" />
+                      <span class="input-icon-addon">
+                        <i class="ti ti-search"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-vcenter card-table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Customer</th>
+                        <th>Phone</th>
+                        <th>Outstanding</th>
+                        <th>Risk</th>
+                        <th>Status</th>
+                        <th class="w-1"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="customerList">
+                      <!-- filled by JS -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="card-body text-center text-secondary py-5" id="emptyList" hidden>
+                  <div class="mb-3">
+                    <i class="ti ti-users-off" style="font-size: 3rem; opacity: 0.4;"></i>
+                  </div>
+                  <p class="mb-0">No customers yet. Click <strong>Add Customer</strong> to get started.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- ==================== REPORT VIEW ==================== -->
+            <section id="reportView" hidden>
+              <div class="row row-deck row-cards mb-3">
+                <div class="col-sm-6 col-lg-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center">
+                        <div class="subheader">Total Credit Given</div>
+                      </div>
+                      <div class="h1 mb-0" id="rTotalCredit">₹0</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center">
+                        <div class="subheader">Total Paid</div>
+                      </div>
+                      <div class="h1 mb-0 text-success" id="rTotalPaid">₹0</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center">
+                        <div class="subheader">Outstanding</div>
+                      </div>
+                      <div class="h1 mb-0 text-danger" id="rOutstanding">₹0</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                  <div class="card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-center">
+                        <div class="subheader">Overdue</div>
+                      </div>
+                      <div class="h1 mb-0 text-danger" id="rOverdue">₹0</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row row-deck row-cards">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h3 class="card-title">Risky Customers</h3>
+                      <div class="card-actions">
+                        <span class="badge bg-azure-lt" id="rCustomers">0 customers</span>
+                      </div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-vcenter card-table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Outstanding</th>
+                            <th>Risk Score</th>
+                            <th>Labels</th>
+                          </tr>
+                        </thead>
+                        <tbody id="riskyList">
+                          <!-- filled by JS -->
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="card-body text-center text-secondary py-5" id="emptyRisky" hidden>
+                      <div class="mb-3">
+                        <i class="ti ti-mood-check" style="font-size: 3rem; opacity: 0.4;"></i>
+                      </div>
+                      <p class="mb-0">No risky customers — nice work!</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- ==================== DETAIL VIEW ==================== -->
+            <section id="detailView" hidden>
+              <div class="row row-deck row-cards mb-3">
+                <div class="col-12">
+                  <div class="card" id="customerCard">
+                    <!-- filled by JS -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Risk Analysis Panel -->
+              <div class="card mb-3" id="analysisPanel" hidden>
+                <div class="card-header">
+                  <h3 class="card-title">
+                    <i class="ti ti-shield-check me-2"></i>
+                    Risk Analysis
+                  </h3>
+                </div>
+                <div class="card-body">
+                  <div class="recommendation mb-3" id="analysisRecommendation"></div>
+                  <div class="btn-list" id="analysisActions"></div>
+                </div>
+              </div>
+
+              <!-- Action buttons -->
+              <div class="row mb-3">
+                <div class="col-6">
+                  <button class="btn btn-orange w-100" id="addCreditBtn">
+                    <i class="ti ti-plus me-1"></i>
+                    Credit Given
+                  </button>
+                </div>
+                <div class="col-6">
+                  <button class="btn btn-success w-100" id="addPaymentBtn">
+                    <i class="ti ti-check me-1"></i>
+                    Payment Received
+                  </button>
+                </div>
+              </div>
+
+              <!-- Transaction History -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Transaction History</h3>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-vcenter card-table">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th class="text-end">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="txnList">
+                      <!-- filled by JS -->
+                    </tbody>
+                  </table>
+                </div>
+                <div class="card-body text-center text-secondary py-4" id="emptyTxn" hidden>
+                  No transactions yet.
+                </div>
+              </div>
+            </section>
+
+            <!-- ==================== SETTINGS VIEW ==================== -->
+            <section id="settingsView" hidden>
+              <div class="row">
+                <div class="col-12 col-md-8 col-lg-6">
+                  <form id="settingsForm" class="card">
+                    <div class="card-header">
+                      <h3 class="card-title">App Settings</h3>
+                    </div>
+                    <div class="card-body">
+                      <div class="mb-3">
+                        <label class="form-label">App name</label>
+                        <input type="text" class="form-control" name="appName" required />
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Default credit limit (₹)</label>
+                        <input type="number" class="form-control" name="defaultCreditLimit" min="0" step="1" />
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">Theme</label>
+                        <select class="form-select" name="theme">
+                          <option value="dark">Dark</option>
+                          <option value="light">Light</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <div class="form-label">Version</div>
+                        <div class="form-control-plaintext" id="versionLabel">1.0.0</div>
+                      </div>
+                    </div>
+                    <div class="card-footer text-end">
+                      <button type="button" class="btn btn-outline-danger me-2" id="clearDataBtn">
+                        Clear all data
+                      </button>
+                      <button type="submit" class="btn btn-primary">Save settings</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </div>
+
+        <footer class="footer footer-transparent d-print-none">
+          <div class="container-xl">
+            <div class="row text-center align-items-center">
+              <div class="col-12">
+                <ul class="list-inline list-inline-dots mb-0">
+                  <li class="list-inline-item">
+                    CreditPulse &copy; 2026
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
-    </header>
+    </div>
 
-    <main id="app">
-      <!-- HOME VIEW -->
-      <section id="homeView">
-        <div class="hero">
-          <div class="hero-title" id="heroTitle">CreditPulse</div>
-          <div class="hero-sub">Digital notebook for wholesaler</div>
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Customer Modal -->
+    <div class="modal modal-blur fade" id="customerDialog" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <form id="customerForm">
+            <div class="modal-header">
+              <h5 class="modal-title">New Customer</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" name="name" required autocomplete="off" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input type="text" class="form-control" name="phone" required inputmode="numeric" autocomplete="off" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Credit limit (₹)</label>
+                <input type="number" class="form-control" name="credit_limit" min="0" step="1" value="0" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary ms-auto">Save</button>
+            </div>
+          </form>
         </div>
-        <div class="search">
-          <input id="searchInput" type="search" placeholder="Search customers…" />
+      </div>
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal modal-blur fade" id="txnDialog" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <form id="txnForm">
+            <div class="modal-header">
+              <h5 class="modal-title" id="txnTitle">Add Transaction</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" name="type" />
+              <div class="mb-3">
+                <label class="form-label">Amount (₹)</label>
+                <input type="number" class="form-control" name="amount" min="1" step="1" required />
+              </div>
+              <div class="mb-3" id="dueDateLabel">
+                <label class="form-label">Due date</label>
+                <input type="date" class="form-control" name="due_date" />
+              </div>
+              <div class="mb-3" id="paidDateLabel" hidden>
+                <label class="form-label">Paid on</label>
+                <input type="date" class="form-control" name="paid_date" />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary ms-auto">Save</button>
+            </div>
+          </form>
         </div>
-        <div id="customerList" class="list"></div>
-        <p id="emptyList" class="empty" hidden>No customers yet. Tap "+ Customer" to add one.</p>
-      </section>
+      </div>
+    </div>
 
-      <!-- REPORT VIEW -->
-      <section id="reportView" hidden>
-        <div class="report-grid">
-          <div class="report-card"><div class="label">Total credit given</div><div class="value" id="rTotalCredit">₹0</div></div>
-          <div class="report-card"><div class="label">Total paid</div><div class="value good" id="rTotalPaid">₹0</div></div>
-          <div class="report-card wide"><div class="label">Outstanding</div><div class="value danger" id="rOutstanding">₹0</div></div>
-          <div class="report-card"><div class="label">Overdue</div><div class="value danger" id="rOverdue">₹0</div></div>
-          <div class="report-card"><div class="label">Customers</div><div class="value" id="rCustomers">0</div></div>
-        </div>
-        <h2 class="section-title">Risky customers</h2>
-        <div id="riskyList" class="list"></div>
-        <p id="emptyRisky" class="empty" hidden>No risky customers — nice work!</p>
-      </section>
+    <!-- Toast -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+      <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+        <div class="toast-body" id="toastBody"></div>
+      </div>
+    </div>
 
-      <!-- DETAIL VIEW -->
-      
-        <section id="detailView" hidden>
-        <div id="customerCard" class="card"></div>
-
-  <div id="analysisPanel" class="analysis-panel" hidden>
-    <h3>Risk Analysis</h3>
-    <div class="recommendation" id="analysisRecommendation"></div>
-    <div class="card-actions" id="analysisActions"></div>
-  </div>
-
-  <div class="actions">
-    <button id="addCreditBtn" class="action credit">+ Credit Given</button>
-    <button id="addPaymentBtn" class="action payment">+ Payment Received</button>
-  </div>
-
-  <h2 class="section-title">History</h2>
-  <div id="txnList" class="list"></div>
-  <p id="emptyTxn" class="empty" hidden>No transactions yet.</p>
-     </section>
-       
-      <!-- SETTINGS VIEW -->
-      <section id="settingsView" hidden>
-        <form id="settingsForm" class="settings">
-          <label>App name<input name="appName" required /></label>
-          <label>Default credit limit (₹)<input name="defaultCreditLimit" type="number" min="0" step="1" /></label>
-          <label>Theme
-            <select name="theme">
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
-          </label>
-          <div class="settings-row"><span>Version</span><span id="versionLabel" class="muted">1.0.0</span></div>
-          <button type="submit" class="primary">Save settings</button>
-          <button type="button" id="clearDataBtn" class="danger-btn">Clear all data</button>
-        </form>
-      </section>
-    </main>
-
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav" id="bottomNav">
-      <button data-view="home" class="active"><span class="icon">🏠</span><span>Home</span></button>
-      <button data-view="report"><span class="icon">📊</span><span>Report</span></button>
-      <button data-view="settings"><span class="icon">⚙️</span><span>Settings</span></button>
-    </nav>
-
-    <!-- CUSTOMER MODAL -->
-    <!--
-      FIX: Changed method="dialog" → no method attribute.
-      method="dialog" made the browser close the dialog on submit WITHOUT firing
-      the submit event, so the API call in script.js was never reached.
-      Now script.js handles submit via e.preventDefault() + API.createCustomer().
-    -->
-    <dialog id="customerDialog" class="modal">
-      <form id="customerForm">
-        <h3>New Customer</h3>
-        <label>Name<input name="name" required autocomplete="off" /></label>
-        <label>Phone<input name="phone" required inputmode="numeric" autocomplete="off" /></label>
-        <label>Credit limit (₹)<input name="credit_limit" type="number" min="0" step="1" value="0" /></label>
-        <menu>
-          <button type="button" data-close>Cancel</button>
-          <button type="submit" class="primary">Save</button>
-        </menu>
-      </form>
-    </dialog>
-
-    <!-- TRANSACTION MODAL -->
-    <!--
-      FIX: Same as above — removed method="dialog" so the submit event fires
-      and script.js can call API.createTransaction().
-    -->
-    <dialog id="txnDialog" class="modal">
-      <form id="txnForm">
-        <h3 id="txnTitle">Add Transaction</h3>
-        <input type="hidden" name="type" />
-        <label>Amount (₹)<input name="amount" type="number" min="1" step="1" required /></label>
-        <label id="dueDateLabel">Due date<input name="due_date" type="date" /></label>
-        <label id="paidDateLabel" hidden>Paid on<input name="paid_date" type="date" /></label>
-        <menu>
-          <button type="button" data-close>Cancel</button>
-          <button type="submit" class="primary">Save</button>
-        </menu>
-      </form>
-    </dialog>
-
-    <div id="toast" class="toast" hidden></div>
+    <!-- Tabler JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
 
     <script>
       if ("serviceWorker" in navigator) {
@@ -144,42 +459,37 @@
       }
     </script>
 
-    <!-- Load API layer first, then UI logic -->
-  <script type="module">
-    import { supabase } from './supabase.js';
+    <script type="module">
+      import { supabase } from './supabase.js';
 
-    async function checkAuth() {
-      // If we've persisted a session in localStorage, restore it first
-      const stored = localStorage.getItem('cp_session');
-      if (stored) {
-        try {
-          const s = JSON.parse(stored);
-          if (s?.access_token) {
-            await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+      async function checkAuth() {
+        const stored = localStorage.getItem('cp_session');
+        if (stored) {
+          try {
+            const s = JSON.parse(stored);
+            if (s?.access_token) {
+              await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+            }
+          } catch (e) {
+            console.warn('Failed to restore stored session', e);
           }
-        } catch (e) {
-          console.warn('Failed to restore stored session', e);
         }
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Auth error:', error);
+          return;
+        }
+        if (!session) {
+          window.location.href = '/login.html';
+          return;
+        }
+        console.log('Authenticated:', session.user.id);
       }
+      checkAuth();
+    </script>
 
-      const { data: { session }, error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error('Auth error:', error);
-        return;
-      }
-
-      if (!session) {
-        window.location.href = '/login.html';
-        return;
-      }
-
-      console.log('Authenticated:', session.user.id);
-    }
-
-    checkAuth();
-</script>
-  <script type="module" src="/js/api.js"></script>
-  <script type="module" src="/js/script.js"></script>
+    <script type="module" src="/js/api.js"></script>
+    <script type="module" src="/js/script.js"></script>
   </body>
 </html>
