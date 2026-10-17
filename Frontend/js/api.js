@@ -73,7 +73,7 @@ async function serverFetch(endpoint, options = {}, { redirectOn401 = true } = {}
     if (response.status === 401) {
       const err = new Error("Unauthorized");
       err.status = 401;
-      if (redirectOn401) window.location.href = "/login.html";
+      if (redirectOn401) window.location.href = "./login.html";
       throw err;
     }
 
