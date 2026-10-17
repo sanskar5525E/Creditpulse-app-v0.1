@@ -136,6 +136,14 @@
 
     <div id="toast" class="toast" hidden></div>
 
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js");
+        });
+      }
+    </script>
+
     <!-- Load API layer first, then UI logic -->
   <script type="module">
     import { supabase } from './supabase.js';
