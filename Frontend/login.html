@@ -49,6 +49,13 @@
     </div>
   </div>
 
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js");
+      });
+    }
+  </script>
   <script type="module" src="login.js"></script>
 </body>
 </html>
