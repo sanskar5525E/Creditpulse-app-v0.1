@@ -4,6 +4,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 
+from app.routes.frontend_compat import router as frontend_router
+
 app = FastAPI(
     title="Creditpulse Backend",
     description="Customer credit risk analysis and decision engine",
@@ -19,9 +21,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-from app.routes.customer_routes import router as customer_router
-from app.routes.frontend_compat import router as frontend_router
 
 app.include_router(customer_router)
 app.include_router(frontend_router)
