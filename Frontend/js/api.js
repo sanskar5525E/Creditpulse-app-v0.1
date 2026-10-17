@@ -52,7 +52,7 @@ async function serverFetch(endpoint, options = {}, { redirectOn401 = true } = {}
   if (!token) {
     const err = new Error("Not signed in");
     err.status = 401;
-    if (redirectOn401) window.location.href = "/login.html";
+    if (redirectOn401) window.location.href = "./login.html";
     throw err;
   }
 
