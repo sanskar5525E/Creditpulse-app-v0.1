@@ -449,18 +449,7 @@
 
     <!-- Tabler JS -->
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./sw.js").catch((error) => {
-            console.warn("Service worker registration failed:", error);
-          });
-        });
-      }
-    </script>
-
-    <script type="module">
+<script type="module">
       import { supabase } from './supabase.js';
 
       async function checkAuth() {
