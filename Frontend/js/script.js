@@ -195,7 +195,7 @@ import { supabase } from "../supabase.js";
       console.warn("Sign out failed", e);
     }
     localStorage.removeItem("cp_session");
-    window.location.href = "/login.html";
+    window.location.href = "./login.html";
   }
   logoutBtn?.addEventListener("click", doLogout);
   logoutBtnMobile?.addEventListener("click", doLogout);

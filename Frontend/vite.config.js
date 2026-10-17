@@ -6,8 +6,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = resolve(__filename, "..");
 
 export default defineConfig({
-  // Required for GitHub Pages: https://sanskar5525E.github.io/Creditpulse-app-v0.1/
-  base: "/Creditpulse-app-v0.1/",
+  // Frontend is deployed at the Vercel domain root.
+  base: "/",
   build: {
     rollupOptions: {
       input: {

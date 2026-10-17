@@ -7,7 +7,6 @@
     <meta name="description" content="Digital notebook for wholesaler — track customer credit, payments, and overdue balances." />
     <meta name="theme-color" content="#066fd1" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="icon-192.png" />
 
     <!-- Tabler CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
@@ -16,7 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
     <!-- Small overrides for CreditPulse -->
-    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
 
   <body>
@@ -450,16 +449,7 @@
 
     <!-- Tabler JS -->
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
-
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("/sw.js");
-        });
-      }
-    </script>
-
-    <script type="module">
+<script type="module">
       import { supabase } from './supabase.js';
 
       async function checkAuth() {
@@ -481,7 +471,7 @@
           return;
         }
         if (!session) {
-          window.location.href = '/login.html';
+          window.location.href = './login.html';
           return;
         }
         console.log('Authenticated:', session.user.id);
@@ -489,7 +479,7 @@
       checkAuth();
     </script>
 
-    <script type="module" src="/js/api.js"></script>
-    <script type="module" src="/js/script.js"></script>
+    <script type="module" src="./js/api.js"></script>
+    <script type="module" src="./js/script.js"></script>
   </body>
 </html>
