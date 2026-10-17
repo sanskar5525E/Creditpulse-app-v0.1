@@ -88,7 +88,7 @@ async function handleSignUp(email, password) {
   } catch (e) {
     console.warn('Failed to persist session', e);
   }
-  window.location.href = '/index.html';
+  window.location.href = './index.html';
 }
 
 form?.addEventListener('submit', async (e) => {
