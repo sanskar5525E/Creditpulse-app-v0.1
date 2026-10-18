@@ -3,11 +3,10 @@ from datetime import datetime
 
 
 def get_transactions(user_id=None):
-    # If user_id is provided, first fetch that user's customer ids
+    # Transactions are scoped through the customers owned by this user.
     if user_id is not None:
         cust_resp = (
-            supabase
-            .table("customers")
+            supabase.table("customers")
             .select("id")
             .eq("user_id", user_id)
             .execute()
@@ -16,56 +15,69 @@ def get_transactions(user_id=None):
         if not cust_ids:
             return []
         response = (
-            supabase
-            .table("transactions")
+            supabase.table("transactions")
             .select("*")
             .in_("customer_id", cust_ids)
             .execute()
         )
         return response.data or []
 
-    response = (
-        supabase
-        .table("transactions")
-        .select("*")
-        .execute()
-    )
+    response = supabase.table("transactions").select("*").execute()
     return response.data or []
 
 
 def get_customer_transactions(customer_id, user_id=None):
-    q = (
-        supabase
-        .table("transactions")
-        .select("*")
-        .eq("customer_id", customer_id)
-    )
     if user_id is not None:
-        # ensure transaction belongs to a customer owned by this user
-        # filter via a join-like check by verifying customer.user_id
-        # Supabase client doesn't support joins here, so verify customer ownership first
-        cust_resp = (
-            supabase
-            .table("customers")
+        owner = (
+            supabase.table("customers")
             .select("id")
             .eq("id", customer_id)
             .eq("user_id", user_id)
-            .single()
             .execute()
         )
-        if not cust_resp.data:
+        if not owner.data:
             return []
 
-    response = q.execute()
+    response = (
+        supabase.table("transactions")
+        .select("*")
+        .eq("customer_id", customer_id)
+        .execute()
+    )
     return response.data or []
 
 
 def create_transaction(payload, user_id=None):
-    payload.setdefault("created_at", datetime.utcnow().isoformat())
-    response = (
-        supabase
-        .table("transactions")
-        .insert(payload)
-        .execute()
-    )
+    # Validate the parent customer before writing. Transactions are scoped
+    # through customers because this schema does not store transactions.user_id.
+    customer_id = payload.get("customer_id")
+    if customer_id is None:
+        raise ValueError("customer_id is required")
+
+    if user_id is not None:
+        owner = (
+            supabase.table("customers")
+            .select("id")
+            .eq("id", customer_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+        if not owner.data:
+            raise ValueError("Customer not found for this account")
+
+    txn_type = payload.get("type")
+    if txn_type not in ("credit", "payment"):
+        raise ValueError("type must be 'credit' or 'payment'")
+
+    try:
+        amount = float(payload.get("amount"))
+    except (TypeError, ValueError):
+        raise ValueError("amount must be a positive number")
+    if amount <= 0:
+        raise ValueError("amount must be greater than zero")
+
+    clean_payload = dict(payload)
+    clean_payload["amount"] = amount
+    clean_payload.setdefault("created_at", datetime.utcnow().isoformat())
+    response = supabase.table("transactions").insert(clean_payload).execute()
     return response.data[0] if response.data else None
