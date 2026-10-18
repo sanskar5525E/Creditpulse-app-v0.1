@@ -9,7 +9,7 @@ from app.services.customer_service import create_transaction as create_transacti
 from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
 from app.services.customer_service import list_customers_with_metrics
-from app.database.customer_queries import get_customer
+from app.database.customer_queries import get_customer as get_customer_record
 from app.auth import get_current_user
 from app.auth import get_authed_client , get_token
 router = APIRouter(
@@ -41,7 +41,7 @@ def validate_transaction_payload(payload: Dict[str, Any], current_user: str) -> 
         raise HTTPException(status_code=400, detail="valid customer_id required")
 
     try:
-        customer = get_customer(customer_id, user_id=current_user)
+        customer = get_customer_record(customer_id, user_id=current_user)
     except Exception:
         customer = None
     if not customer:
