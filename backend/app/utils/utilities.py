@@ -120,6 +120,70 @@ def credit_usage_ratio(balance: float, credit_limit: float) -> float:
     return max(0.0, balance / credit_limit)
 
 
+def allocate_open_exposure(
+    transactions: list[dict[str, Any]],
+    today: Optional[date] = None,
+) -> dict[str, Any]:
+    """
+    Apply payments to the oldest credit bills first and report remaining
+    balance, advance, overdue exposure, and the worst open days late.
+    This is the canonical transaction-allocation rule used by the backend.
+    """
+    today = today or date.today()
+    credits = []
+    for index, txn in enumerate(transactions or []):
+        if txn.get("type") != "credit":
+            continue
+        amount = max(0.0, safe_float(txn.get("amount")))
+        if amount <= 0:
+            continue
+        due = parse_date(txn.get("due_date"))
+        created = parse_date(txn.get("created_at"))
+        sort_date = due or created or date.max
+        credits.append({
+            "remaining": amount,
+            "due_date": due,
+            "sort_date": sort_date,
+            "index": index,
+        })
+
+    credits.sort(key=lambda item: (item["sort_date"], item["index"]))
+    payment_total = sum(
+        max(0.0, safe_float(txn.get("amount")))
+        for txn in (transactions or [])
+        if txn.get("type") == "payment"
+    )
+    available_payment = payment_total
+
+    for credit in credits:
+        if available_payment <= 0:
+            break
+        applied = min(credit["remaining"], available_payment)
+        credit["remaining"] = round(credit["remaining"] - applied, 2)
+        available_payment = round(available_payment - applied, 2)
+
+    balance = 0.0
+    overdue_amount = 0.0
+    worst_days_late = 0
+
+    for credit in credits:
+        remaining = credit["remaining"]
+        if remaining <= 0:
+            continue
+        balance += remaining
+        due = credit["due_date"]
+        if due and due < today:
+            overdue_amount += remaining
+            worst_days_late = max(worst_days_late, (today - due).days)
+
+    return {
+        "balance": round(balance, 2),
+        "advance": round(max(0.0, available_payment), 2),
+        "overdue_amount": round(overdue_amount, 2),
+        "days_late": max(0, worst_days_late),
+    }
+
+
 def calculate_risk_score(
     days_late: int,
     balance: float,
