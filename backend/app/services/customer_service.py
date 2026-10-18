@@ -176,6 +176,11 @@ def list_customers_with_metrics(user_id: str | None = None) -> List[Dict[str, An
             "outstanding": metrics.get("balance", 0),
             "total_credit": metrics.get("total_credit", 0),
             "total_paid": metrics.get("total_payment", 0),
+            "total_payment": metrics.get("total_payment", 0),
+            "advance": metrics.get("advance", 0),
+            "overdue_amount": metrics.get("overdue_amount", 0),
+            "days_late": metrics.get("days_late", 0),
+            "risk_label": metrics.get("risk_label", "LOW"),
             "risk_score": metrics.get("risk_score", 0),
         })
 
