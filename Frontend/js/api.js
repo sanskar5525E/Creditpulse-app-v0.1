@@ -109,7 +109,7 @@ function txnsFor(customerId, allTxns) {
 
 function decorateCustomer(customer, allTxns) {
   const metrics = buildCustomerMetrics(customer, txnsFor(customer.id, allTxns));
-  const labels = metrics.risk_score >= 70 ? ["high-risk"] : metrics.risk_score >= 40 ? ["medium-risk"] : [];
+  const labels = metrics.risk_score >= 50 ? ["high-risk"] : metrics.risk_score >= 25 ? ["medium-risk"] : [];
   return {
     ...customer,
     outstanding: metrics.balance,
