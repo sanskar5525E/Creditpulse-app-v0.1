@@ -232,8 +232,9 @@ import { API } from "./api.js";
   }
 
   function riskBadge(score) {
-    if (score >= 70) return '<span class="badge bg-danger-lt">High</span>';
-    if (score >= 40) return '<span class="badge bg-warning-lt">Medium</span>';
+    if (score >= 75) return '<span class="badge bg-danger-lt">Critical</span>';
+    if (score >= 50) return '<span class="badge bg-danger-lt">High</span>';
+    if (score >= 25) return '<span class="badge bg-warning-lt">Medium</span>';
     return '<span class="badge bg-success-lt">Low</span>';
   }
 
