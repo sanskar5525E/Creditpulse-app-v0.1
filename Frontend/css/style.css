@@ -632,6 +632,41 @@ body[data-bs-theme="dark"] .page:not(.page-center) .bg-secondary-lt {
   font-size: 0.78rem;
 }
 
+/* Shared theme tokens also reach overlays, which are siblings of .page. */
+body[data-bs-theme="light"] {
+  --cp-primary: #4169e1;
+  --cp-primary-hover: #3154c7;
+  --cp-primary-soft: #eaf0ff;
+  --cp-accent: #14b8a6;
+  --cp-page-bg: #f4f7fb;
+  --cp-surface: #ffffff;
+  --cp-surface-raised: #ffffff;
+  --cp-surface-muted: #f7f9fc;
+  --cp-text: #172033;
+  --cp-muted: #667085;
+  --cp-border: #e5eaf2;
+  --cp-shadow: 0 2px 8px rgb(19 33 68 / 4%), 0 10px 28px rgb(19 33 68 / 3%);
+  --cp-shadow-hover: 0 7px 24px rgb(19 33 68 / 9%);
+  --cp-field: #ffffff;
+}
+
+body[data-bs-theme="dark"] {
+  --cp-primary: #8aa6ff;
+  --cp-primary-hover: #a3b8ff;
+  --cp-primary-soft: #202f51;
+  --cp-accent: #4bd5c3;
+  --cp-page-bg: #0d1422;
+  --cp-surface: #141e2f;
+  --cp-surface-raised: #192538;
+  --cp-surface-muted: #101a2a;
+  --cp-text: #edf2fb;
+  --cp-muted: #9aa9c0;
+  --cp-border: #29374d;
+  --cp-shadow: 0 2px 8px rgb(0 0 0 / 10%), 0 12px 30px rgb(0 0 0 / 10%);
+  --cp-shadow-hover: 0 10px 28px rgb(0 0 0 / 20%);
+  --cp-field: #101a2a;
+}
+
 /* Modals, toasts and confirmation flows */
 .page:not(.page-center) ~ .modal .modal-content {
   overflow: hidden;
@@ -685,7 +720,33 @@ body[data-bs-theme="dark"] .page:not(.page-center) ~ .modal .btn-close {
   filter: invert(1) grayscale(1);
 }
 
-.page:not(.page-center) ~ .toast {
+.page:not(.page-center) ~ .modal .form-control,
+.page:not(.page-center) ~ .modal .form-select {
+  min-height: 42px;
+  border: 1px solid var(--cp-border);
+  border-radius: 10px;
+  background: var(--cp-field);
+  color: var(--cp-text);
+  box-shadow: none;
+}
+
+.page:not(.page-center) ~ .modal .form-control:focus,
+.page:not(.page-center) ~ .modal .form-select:focus {
+  border-color: var(--cp-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cp-primary) 16%, transparent);
+}
+
+.page:not(.page-center) ~ .modal .form-label {
+  color: var(--cp-text);
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.page:not(.page-center) ~ .toast-container {
+  z-index: 1090;
+}
+
+.page:not(.page-center) ~ .toast-container .toast {
   overflow: hidden;
   border: 1px solid var(--cp-border);
   border-radius: 12px;
@@ -694,11 +755,11 @@ body[data-bs-theme="dark"] .page:not(.page-center) ~ .modal .btn-close {
   box-shadow: var(--cp-shadow-hover);
 }
 
-.page:not(.page-center) ~ .toast .toast-body {
+.page:not(.page-center) ~ .toast-container .toast .toast-body {
   padding: 0.9rem 1rem;
 }
 
-.page:not(.page-center) ~ .toast.error .toast-body {
+.page:not(.page-center) ~ .toast-container .toast.error .toast-body {
   background: #b52c40;
   color: #ffffff;
 }
