@@ -9,6 +9,7 @@ from app.services.customer_service import create_transaction as create_transacti
 from app.services.customer_service import create_transaction_and_decide
 from app.services.customer_service import list_transactions as list_transactions_service
 from app.services.customer_service import list_customers_with_metrics
+from app.database.customer_queries import get_customer
 from app.auth import get_current_user
 from app.auth import get_authed_client , get_token
 router = APIRouter(
@@ -21,6 +22,30 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 
 logger = logging.getLogger(__name__)
+
+
+def validate_transaction_payload(payload: Dict[str, Any], current_user: str) -> None:
+    if payload.get("type") not in ("credit", "payment"):
+        raise HTTPException(status_code=400, detail="type must be 'credit' or 'payment'")
+
+    try:
+        amount = float(payload.get("amount"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="amount must be a positive number")
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="amount must be greater than zero")
+
+    try:
+        customer_id = int(payload.get("customer_id"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="valid customer_id required")
+
+    try:
+        customer = get_customer(customer_id, user_id=current_user)
+    except Exception:
+        customer = None
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
 
 
 @router.get("/settings")
@@ -147,6 +172,7 @@ def delete_customer(customer_id: int, current_user: str = Depends(get_current_us
 
 @router.post("/transactions")
 def create_transaction(payload: Dict[str, Any], current_user: str = Depends(get_current_user)):
+    validate_transaction_payload(payload, current_user)
     try:
         created = create_transaction_service(payload, user_id=current_user)
         if created:
@@ -173,8 +199,7 @@ def create_transaction_with_decision(payload: Dict[str, Any], current_user: str 
     Create a transaction, then immediately re-run the decision engine
     for that customer using their updated transaction history.
     """
-    if not payload.get("customer_id"):
-        raise HTTPException(status_code=400, detail="customer_id required")
+    validate_transaction_payload(payload, current_user)
 
     try:
         result = create_transaction_and_decide(payload, use_supabase=True, user_id=current_user)
