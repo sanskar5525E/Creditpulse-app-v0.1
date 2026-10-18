@@ -22,7 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(customer_router)
 app.include_router(frontend_router)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "Frontend"
@@ -41,4 +40,4 @@ def read_root():
 
 @app.get("/app.html", include_in_schema=False)
 def serve_dashboard():
-    return FileResponse(str(FRONTEND_DIR / "app.html"))
+    return FileResponse(str(FRONTEND_DIR / "index.html"))
