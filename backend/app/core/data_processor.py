@@ -1,8 +1,7 @@
 from typing import Any
 
 from app.utils.utilities import (
-    calculate_balance,
-    calculate_days_late,
+    allocate_open_exposure,
     calculate_risk_score,
     get_risk_label,
     total_amount,
@@ -27,19 +26,11 @@ def process_customer_data(
 
     total_credit = total_amount(transactions, "credit")
     total_payment = total_amount(transactions, "payment")
-    balance = calculate_balance(total_credit, total_payment)
-
-    overdue_days_list = []
-    for txn in transactions:
-        due_date = txn.get("due_date")
-        paid_date = txn.get("paid_date")
-
-        if due_date:
-            days_late = calculate_days_late(due_date, paid_date)
-            if days_late > 0:
-                overdue_days_list.append(days_late)
-
-    worst_days_late = max(overdue_days_list, default=0)
+    # Payments clear oldest dues first. Days late is the worst still-open bill,
+    # scaled later against max_delay_days (45 = a full FMCG cycle past due).
+    exposure = allocate_open_exposure(transactions)
+    balance = exposure["balance"]
+    worst_days_late = exposure["days_late"]
 
     risk_score = calculate_risk_score(
         days_late=worst_days_late,
@@ -54,6 +45,8 @@ def process_customer_data(
         "total_credit": total_credit,
         "total_payment": total_payment,
         "balance": balance,
+        "advance": exposure["advance"],
+        "overdue_amount": exposure["overdue_amount"],
         "credit_limit": credit_limit,
         "days_late": worst_days_late,
         "risk_score": risk_score,
