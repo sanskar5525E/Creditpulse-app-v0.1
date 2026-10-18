@@ -1,4 +1,4 @@
-// UI interactions and DOM updates – Tabler redesign
+// UI interactions and DOM updates - Tabler redesign
 import { supabase } from "../supabase.js";
 
 (function () {
@@ -29,7 +29,6 @@ import { supabase } from "../supabase.js";
   const analysisRecommendation = $("analysisRecommendation");
   const analysisActions = $("analysisActions");
 
-  // Bootstrap modals
   const customerModalEl = $("customerDialog");
   const txnModalEl = $("txnDialog");
   let customerModal, txnModal;
@@ -40,12 +39,12 @@ import { supabase } from "../supabase.js";
       txnModal = new bootstrap.Modal(txnModalEl);
     } else {
       customerModal = {
-        show: () => customerModalEl.classList.add("show"),
-        hide: () => customerModalEl.classList.remove("show"),
+        show: () => customerModalEl && customerModalEl.classList.add("show"),
+        hide: () => customerModalEl && customerModalEl.classList.remove("show"),
       };
       txnModal = {
-        show: () => txnModalEl.classList.add("show"),
-        hide: () => txnModalEl.classList.remove("show"),
+        show: () => txnModalEl && txnModalEl.classList.add("show"),
+        hide: () => txnModalEl && txnModalEl.classList.remove("show"),
       };
     }
   }
@@ -61,7 +60,7 @@ import { supabase } from "../supabase.js";
   let cachedSettings = { appName: "CreditPulse", defaultCreditLimit: 5000, theme: "dark", version: "1.0.0" };
   let cachedCustomers = [];
 
-  const rupees = (n) => "₹" + Number(n || 0).toLocaleString("en-IN");
+  const rupees = (n) => "\u20B9" + Number(n || 0).toLocaleString("en-IN");
   const initials = (name) =>
     (name || "?")
       .split(" ")
@@ -71,10 +70,19 @@ import { supabase } from "../supabase.js";
       .toUpperCase();
   const fmtDate = (d) =>
     !d
-      ? "—"
+      ? "\u2014"
       : new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-  const escapeHtml = (s) =>
-    String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  const escapeHtml = (s) => {
+    const map = {
+      "\u0026": "\u0026amp;",
+      "\u003c": "\u0026lt;",
+      "\u003e": "\u0026gt;",
+      '\u0022': "\u0026quot;",
+      "\u0027": "\u0026#39;",
+    };
+    return String(s ?? "").replace(/[&<>"']/g, (ch) => map[ch] || ch);
+  };
 
   function toast(msg, isError = false) {
     const t = $("toast");
@@ -94,7 +102,7 @@ import { supabase } from "../supabase.js";
     if (!el) return;
     el.disabled = loading;
     el.dataset.originalText = el.dataset.originalText || el.textContent;
-    el.textContent = loading ? "…" : el.dataset.originalText;
+    el.textContent = loading ? "\u2026" : el.dataset.originalText;
   }
 
   async function applySettings() {
@@ -102,7 +110,7 @@ import { supabase } from "../supabase.js";
       const s = await API.getSettings();
       cachedSettings = s;
       document.body.setAttribute("data-bs-theme", s.theme === "light" ? "light" : "dark");
-      document.title = `${s.appName} — Digital Notebook for Wholesalers`;
+      document.title = s.appName + " \u2014 Digital Notebook for Wholesalers";
       if (heroTitle) heroTitle.textContent = s.appName;
       if (currentView === "home" && !currentCustomerId) titleEl.textContent = "Customers";
       versionLabel.textContent = s.version || "1.0.0";
@@ -114,7 +122,7 @@ import { supabase } from "../supabase.js";
       }
       if (customerForm) customerForm.elements.credit_limit.value = s.defaultCreditLimit;
     } catch (err) {
-      toast("Failed to load settings — using defaults", true);
+      toast("Failed to load settings \u2014 using defaults", true);
     }
   }
 
@@ -130,7 +138,7 @@ import { supabase } from "../supabase.js";
         theme: fd.get("theme") === "light" ? "light" : "dark",
       });
       await applySettings();
-      toast("Settings saved ✓");
+      toast("Settings saved");
     } catch (err) {
       toast("Failed to save settings: " + err.message, true);
     } finally {
@@ -163,10 +171,8 @@ import { supabase } from "../supabase.js";
       if (el) el.hidden = k !== name;
     });
     setActiveNav(name);
-
     if (addCustomerBtn) addCustomerBtn.style.display = name === "home" ? "" : "none";
     if (addCustomerBtnMobile) addCustomerBtnMobile.style.display = name === "home" ? "" : "none";
-
     const titles = {
       home: { title: "Customers", pretitle: "Overview" },
       report: { title: "Reports", pretitle: "Analytics" },
@@ -175,7 +181,6 @@ import { supabase } from "../supabase.js";
     const t = titles[name] || titles.home;
     titleEl.textContent = t.title;
     if (pagePretitle) pagePretitle.textContent = t.pretitle;
-
     location.hash = name === "home" ? "" : "#" + name;
     if (name === "home") renderHome();
     if (name === "report") renderReport();
@@ -226,12 +231,12 @@ import { supabase } from "../supabase.js";
   }
 
   function riskBadge(score) {
-    if (score >= 70) return `<span class="badge bg-danger-lt">High</span>`;
-    if (score >= 40) return `<span class="badge bg-warning-lt">Medium</span>`;
-    return `<span class="badge bg-success-lt">Low</span>`;
+    if (score >= 70) return '<span class="badge bg-danger-lt">High</span>';
+    if (score >= 40) return '<span class="badge bg-warning-lt">Medium</span>';
+    return '<span class="badge bg-success-lt">Low</span>';
   }
 
-  function labelBadges(labels = []) {
+  function labelBadges(labels) {
     return (labels || [])
       .map((l) => {
         const cls =
@@ -240,7 +245,7 @@ import { supabase } from "../supabase.js";
             : l === "near-limit"
             ? "bg-warning-lt"
             : "bg-secondary-lt";
-        return `<span class="badge ${cls} me-1">${escapeHtml(l)}</span>`;
+        return '<span class="badge ' + cls + ' me-1">' + escapeHtml(l) + "</span>";
       })
       .join("");
   }
@@ -253,32 +258,36 @@ import { supabase } from "../supabase.js";
       const list = all.filter(
         (c) => !q || c.name.toLowerCase().includes(q) || (c.phone || "").includes(q)
       );
-
       if (!customerList) return;
       customerList.innerHTML = "";
       if (emptyList) emptyList.hidden = list.length > 0;
-
       list.forEach((c) => {
         const tr = document.createElement("tr");
         tr.style.cursor = "pointer";
-        tr.innerHTML = `
-          <td>
-            <div class="d-flex align-items-center">
-              <span class="avatar-initials me-2">${initials(c.name)}</span>
-              <div>
-                <div class="fw-bold">${escapeHtml(c.name)}</div>
-              </div>
-            </div>
-          </td>
-          <td class="text-secondary">${escapeHtml(c.phone || "—")}</td>
-          <td class="${c.outstanding > 0 ? "text-danger fw-bold" : ""}">${rupees(c.outstanding)}</td>
-          <td>${riskBadge(c.risk_score ?? 0)} <span class="text-secondary ms-1">${c.risk_score ?? 0}</span></td>
-          <td>${labelBadges(c.labels)}</td>
-          <td>
-            <a href="#" class="text-secondary">
-              <i class="ti ti-chevron-right"></i>
-            </a>
-          </td>`;
+        tr.innerHTML =
+          '<td><div class="d-flex align-items-center">' +
+          '<span class="avatar-initials me-2">' +
+          initials(c.name) +
+          '</span><div><div class="fw-bold">' +
+          escapeHtml(c.name) +
+          "</div></div></div></td>" +
+          '<td class="text-secondary">' +
+          escapeHtml(c.phone || "\u2014") +
+          "</td>" +
+          '<td class="' +
+          (c.outstanding > 0 ? "text-danger fw-bold" : "") +
+          '">' +
+          rupees(c.outstanding) +
+          "</td>" +
+          "<td>" +
+          riskBadge(c.risk_score ?? 0) +
+          ' <span class="text-secondary ms-1">' +
+          (c.risk_score ?? 0) +
+          "</span></td>" +
+          "<td>" +
+          labelBadges(c.labels) +
+          "</td>" +
+          '<td><a href="#" class="text-secondary"><i class="ti ti-chevron-right"></i></a></td>';
         tr.addEventListener("click", () => showDetail(c.id));
         customerList.appendChild(tr);
       });
@@ -297,27 +306,35 @@ import { supabase } from "../supabase.js";
       $("rTotalPaid").textContent = rupees(s.totalPaid);
       $("rOutstanding").textContent = rupees(s.outstanding);
       $("rOverdue").textContent = rupees(s.overdue);
-      $("rCustomers").textContent = `${s.customers || 0} customers`;
-
+      $("rCustomers").textContent = (s.customers || 0) + " customers";
       const risky = $("riskyList");
       if (!risky) return;
       risky.innerHTML = "";
       if ($("emptyRisky")) $("emptyRisky").hidden = (s.risky || []).length > 0;
-
       (s.risky || []).forEach((c) => {
         const tr = document.createElement("tr");
         tr.style.cursor = "pointer";
-        tr.innerHTML = `
-          <td>
-            <div class="d-flex align-items-center">
-              <span class="avatar-initials me-2">${initials(c.name)}</span>
-              <div class="fw-bold">${escapeHtml(c.name)}</div>
-            </div>
-          </td>
-          <td class="text-secondary">${escapeHtml(c.phone || "—")}</td>
-          <td class="text-danger fw-bold">${rupees(c.outstanding)}</td>
-          <td>${riskBadge(c.risk_score ?? 0)} <span class="text-secondary ms-1">${c.risk_score ?? 0}</span></td>
-          <td>${labelBadges(c.labels)}</td>`;
+        tr.innerHTML =
+          '<td><div class="d-flex align-items-center">' +
+          '<span class="avatar-initials me-2">' +
+          initials(c.name) +
+          '</span><div class="fw-bold">' +
+          escapeHtml(c.name) +
+          "</div></div></td>" +
+          '<td class="text-secondary">' +
+          escapeHtml(c.phone || "\u2014") +
+          "</td>" +
+          '<td class="text-danger fw-bold">' +
+          rupees(c.outstanding) +
+          "</td>" +
+          "<td>" +
+          riskBadge(c.risk_score ?? 0) +
+          ' <span class="text-secondary ms-1">' +
+          (c.risk_score ?? 0) +
+          "</span></td>" +
+          "<td>" +
+          labelBadges(c.labels) +
+          "</td>";
         tr.addEventListener("click", () => showDetail(c.id));
         risky.appendChild(tr);
       });
@@ -330,7 +347,7 @@ import { supabase } from "../supabase.js";
     customerForm.reset();
     customerForm.elements.credit_limit.value = cachedSettings.defaultCreditLimit || 0;
     if (customerModal) customerModal.show();
-    else customerModalEl.classList.add("show");
+    else if (customerModalEl) customerModalEl.classList.add("show");
   }
 
   addCustomerBtn?.addEventListener("click", openCustomerModal);
@@ -349,8 +366,8 @@ import { supabase } from "../supabase.js";
       });
       cachedCustomers = [];
       if (customerModal) customerModal.hide();
-      else customerModalEl.classList.remove("show");
-      toast("Customer added ✓");
+      else if (customerModalEl) customerModalEl.classList.remove("show");
+      toast("Customer added");
       await renderHome();
     } catch (err) {
       toast("Failed to create customer: " + err.message, true);
@@ -360,10 +377,9 @@ import { supabase } from "../supabase.js";
   });
 
   async function loadCustomer(id) {
-    if (customerCard) customerCard.innerHTML = `<div class="card-body text-center py-5 text-secondary">Loading…</div>`;
+    if (customerCard) customerCard.innerHTML = '<div class="card-body text-center py-5 text-secondary">Loading\u2026</div>';
     if (txnList) txnList.innerHTML = "";
     if (analysisPanel) analysisPanel.hidden = true;
-
     try {
       const { customer, transactions, processed_info, decision } = await API.getCustomer(id);
       titleEl.textContent = customer.name;
@@ -382,64 +398,50 @@ import { supabase } from "../supabase.js";
     const totalCredit = metrics?.total_credit ?? 0;
     const totalPaid = metrics?.total_payment ?? 0;
     const riskScore = metrics?.risk_score ?? 0;
-
-    customerCard.innerHTML = `
-      <div class="card-body">
-        <div class="d-flex align-items-start justify-content-between mb-3">
-          <div class="d-flex align-items-center">
-            <span class="avatar-initials me-3" style="width:3rem;height:3rem;font-size:1.1rem;">${initials(c.name)}</span>
-            <div>
-              <div class="h2 mb-0">${escapeHtml(c.name)}</div>
-              <div class="text-secondary">📞 ${escapeHtml(c.phone || "—")}</div>
-            </div>
-          </div>
-          <button id="deleteCustomerBtn" class="btn btn-outline-danger btn-sm">
-            <i class="ti ti-trash me-1"></i> Delete
-          </button>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-6 col-md-3">
-            <div class="stat-card outstanding">
-              <div class="label">Outstanding</div>
-              <div class="value">${rupees(outstanding)}</div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="label">Credit Limit</div>
-              <div class="value">${rupees(c.credit_limit)}</div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="label">Total Credit</div>
-              <div class="value">${rupees(totalCredit)}</div>
-            </div>
-          </div>
-          <div class="col-6 col-md-3">
-            <div class="stat-card">
-              <div class="label">Total Paid</div>
-              <div class="value">${rupees(totalPaid)}</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="mb-1 d-flex justify-content-between">
-          <span class="text-secondary">Risk score</span>
-          <span class="fw-bold">${riskScore}/100</span>
-        </div>
-        <div class="risk-progress">
-          <div class="risk-progress-bar" style="width:${Math.min(riskScore, 100)}%"></div>
-        </div>
-      </div>`;
+    customerCard.innerHTML =
+      '<div class="card-body">' +
+      '<div class="d-flex align-items-start justify-content-between mb-3">' +
+      '<div class="d-flex align-items-center">' +
+      '<span class="avatar-initials me-3" style="width:3rem;height:3rem;font-size:1.1rem;">' +
+      initials(c.name) +
+      "</span>" +
+      "<div>" +
+      '<div class="h2 mb-0">' +
+      escapeHtml(c.name) +
+      "</div>" +
+      '<div class="text-secondary">\uD83D\uDCDE ' +
+      escapeHtml(c.phone || "\u2014") +
+      "</div></div></div>" +
+      '<button id="deleteCustomerBtn" class="btn btn-outline-danger btn-sm">' +
+      '<i class="ti ti-trash me-1"></i> Delete</button></div>' +
+      '<div class="row g-3 mb-3">' +
+      '<div class="col-6 col-md-3"><div class="stat-card outstanding"><div class="label">Outstanding</div><div class="value">' +
+      rupees(outstanding) +
+      "</div></div></div>" +
+      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Credit Limit</div><div class="value">' +
+      rupees(c.credit_limit) +
+      "</div></div></div>" +
+      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Credit</div><div class="value">' +
+      rupees(totalCredit) +
+      "</div></div></div>" +
+      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Paid</div><div class="value">' +
+      rupees(totalPaid) +
+      "</div></div></div></div>" +
+      '<div class="mb-1 d-flex justify-content-between">' +
+      '<span class="text-secondary">Risk score</span>' +
+      '<span class="fw-bold">' +
+      riskScore +
+      "/100</span></div>" +
+      '<div class="risk-progress"><div class="risk-progress-bar" style="width:' +
+      Math.min(riskScore, 100) +
+      '%"></div></div></div>';
 
     $("deleteCustomerBtn")?.addEventListener("click", async () => {
-      if (!confirm(`Delete ${c.name} and all their transactions? This cannot be undone.`)) return;
+      if (!confirm("Delete " + c.name + " and all their transactions? This cannot be undone.")) return;
       try {
         await API.deleteCustomer(c.id);
         cachedCustomers = [];
-        toast(`${c.name} deleted`);
+        toast(c.name + " deleted");
         setView("home");
       } catch (err) {
         toast("Failed to delete: " + err.message, true);
@@ -452,28 +454,25 @@ import { supabase } from "../supabase.js";
       if (analysisPanel) analysisPanel.hidden = true;
       return;
     }
-
     const { metrics, decision: dec, automation } = decision;
     analysisPanel.hidden = false;
-    analysisRecommendation.textContent = `${metrics.risk_label} risk (score ${metrics.risk_score}/100) — ${dec.recommendation}`;
-
+    analysisRecommendation.textContent =
+      metrics.risk_label + " risk (score " + metrics.risk_score + "/100) \u2014 " + dec.recommendation;
     analysisActions.innerHTML = "";
-
-    if (dec.should_remind && automation?.whatsapp_url) {
+    if (dec.should_remind && automation && automation.whatsapp_url) {
       const a = document.createElement("a");
       a.href = automation.whatsapp_url;
       a.target = "_blank";
       a.rel = "noopener";
       a.className = "btn btn-success";
-      a.innerHTML = `<i class="ti ti-brand-whatsapp me-1"></i> Send WhatsApp reminder`;
+      a.innerHTML = '<i class="ti ti-brand-whatsapp me-1"></i> Send WhatsApp reminder';
       analysisActions.appendChild(a);
     }
-
-    if (dec.should_call && automation?.tel_url) {
+    if (dec.should_call && automation && automation.tel_url) {
       const a = document.createElement("a");
       a.href = automation.tel_url;
       a.className = "btn btn-primary";
-      a.innerHTML = `<i class="ti ti-phone me-1"></i> Call customer`;
+      a.innerHTML = '<i class="ti ti-phone me-1"></i> Call customer';
       analysisActions.appendChild(a);
     }
   }
@@ -481,38 +480,123 @@ import { supabase } from "../supabase.js";
   function renderTxns(txns) {
     if (!txnList) return;
     txnList.innerHTML = "";
-    if (emptyTxn) emptyTxn.hidden = txns.length > 0;
-
-    txns.forEach((t) => {
+    if (emptyTxn) emptyTxn.hidden = (txns || []).length > 0;
+    (txns || []).forEach((t) => {
       const tr = document.createElement("tr");
       const isCredit = t.type === "credit";
-      const date = isCredit ? `Due ${fmtDate(t.due_date)}` : `Paid ${fmtDate(t.paid_date)}`;
-      tr.innerHTML = `
-        <td>
-          <span class="badge ${isCredit ? "bg-orange-lt" : "bg-success-lt"}`;
-      // NOTE: This is a truncated version for the tool call size limit.
-      // The complete file is available in the local artifacts and was partially pushed earlier.
-      // Full renderTxns and remaining functions are in the local copy.
+      const date = isCredit ? "Due " + fmtDate(t.due_date) : "Paid " + fmtDate(t.paid_date);
+      const badgeClass = isCredit ? "bg-orange-lt" : "bg-success-lt";
+      const label = isCredit ? "Credit given" : "Payment received";
+      const amountClass = isCredit ? "text-orange" : "text-success";
+      const sign = isCredit ? "+" : "\u2212";
+      tr.innerHTML =
+        "<td><span class=\"badge " +
+        badgeClass +
+        "\">" +
+        label +
+        "</span></td>" +
+        "<td class=\"text-secondary\">" +
+        date +
+        "</td>" +
+        "<td class=\"text-end fw-bold " +
+        amountClass +
+        "\">" +
+        sign +
+        rupees(t.amount) +
+        "</td>";
+      txnList.appendChild(tr);
     });
   }
 
-  // Remaining functions (openTxn, txnForm submit, bootFromHash, initializeApp)
-  // are present in the local full file. Re-pushing complete version if needed.
+  function openTxn(type) {
+    if (!txnForm) return;
+    txnForm.reset();
+    txnForm.elements["type"].value = type;
+    if (txnTitle) txnTitle.textContent = type === "credit" ? "Credit given to customer" : "Payment received";
+    if (dueDateLabel) dueDateLabel.hidden = type !== "credit";
+    if (paidDateLabel) paidDateLabel.hidden = type !== "payment";
+    const today = new Date().toISOString().slice(0, 10);
+    if (type === "payment" && txnForm.elements["paid_date"]) {
+      txnForm.elements["paid_date"].value = today;
+    }
+    if (txnModal) txnModal.show();
+    else if (txnModalEl) txnModalEl.classList.add("show");
+  }
+
+  $("addCreditBtn")?.addEventListener("click", function () {
+    openTxn("credit");
+  });
+  $("addPaymentBtn")?.addEventListener("click", function () {
+    openTxn("payment");
+  });
+
+  txnForm?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = txnForm.querySelector("[type=submit]");
+    setLoading(btn, true);
+    const fd = new FormData(txnForm);
+    const type = fd.get("type");
+    const payload = {
+      customer_id: currentCustomerId,
+      type: type,
+      amount: Number(fd.get("amount")),
+    };
+    if (type === "credit") payload.due_date = fd.get("due_date");
+    else payload.paid_date = fd.get("paid_date");
+
+    if (type === "credit" && !payload.due_date) {
+      setLoading(btn, false);
+      return toast("Pick a due date");
+    }
+    if (type === "payment" && !payload.paid_date) {
+      setLoading(btn, false);
+      return toast("Pick a paid date");
+    }
+
+    try {
+      const resp = await API.createTransactionWithDecision(payload);
+      if (txnModal) txnModal.hide();
+      else if (txnModalEl) txnModalEl.classList.remove("show");
+      toast("Saved");
+      const decisionPayload =
+        (resp && resp.decision && resp.decision.output) ||
+        (resp && resp.decision && resp.decision.decision_combined) ||
+        (resp && resp.decision);
+      if (decisionPayload && decisionPayload.metrics) {
+        const metrics = decisionPayload.metrics;
+        const idx = cachedCustomers.findIndex((c) => c.id === currentCustomerId);
+        if (idx >= 0) {
+          cachedCustomers[idx].risk_score = metrics.risk_score;
+          cachedCustomers[idx].outstanding = metrics.balance;
+        } else {
+          cachedCustomers = [];
+        }
+      } else {
+        cachedCustomers = [];
+      }
+      loadCustomer(currentCustomerId);
+    } catch (err) {
+      toast("Failed to save transaction: " + err.message, true);
+    } finally {
+      setLoading(btn, false);
+    }
+  });
 
   function bootFromHash() {
     const m = location.hash.match(/^#c\/(.+)$/);
     if (m) return showDetail(m[1]);
     const v = location.hash.replace("#", "");
-    if (["report", "settings"].includes(v)) return setView(v);
+    if (v === "report" || v === "settings") return setView(v);
     setView("home");
   }
   window.addEventListener("hashchange", bootFromHash);
 
   async function initializeApp() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const sessionResult = await supabase.auth.getSession();
+      const session = sessionResult && sessionResult.data && sessionResult.data.session;
       if (!session) {
-        window.location.href = "login.html";
+        window.location.href = "./login.html";
         return;
       }
       console.log("Authenticated:", session.user.id);
@@ -522,7 +606,7 @@ import { supabase } from "../supabase.js";
       bootFromHash();
     } catch (err) {
       console.error("App failed to initialize:", err);
-      window.location.href = "login.html";
+      window.location.href = "./login.html";
     }
   }
   initializeApp();
