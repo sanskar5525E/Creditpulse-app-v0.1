@@ -220,14 +220,17 @@ def get_summary(current_user: str = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load summary data: {e}")
 
-    total_credit = sum([t.get("amount", 0) for t in transactions if t.get("type") == "credit"])
-    total_paid = sum([t.get("amount", 0) for t in transactions if t.get("type") == "payment"])
-    outstanding = total_credit - total_paid
-    overdue = sum([
-        t.get("amount", 0) for t in transactions
-        if t.get("type") == "credit" and t.get("due_date") and t.get("due_date") < datetime.utcnow().date().isoformat()
-    ])
-    risky = sorted(customers, key=lambda c: c.get("outstanding", 0), reverse=True)[:10]
+    total_credit = round(sum(float(t.get("amount", 0) or 0) for t in transactions if t.get("type") == "credit"), 2)
+    total_paid = round(sum(float(t.get("amount", 0) or 0) for t in transactions if t.get("type") == "payment"), 2)
+    # Use the same per-customer open-balance and FIFO payment allocation
+    # metrics as the dashboard's local logic.
+    outstanding = round(sum(float(c.get("outstanding", 0) or 0) for c in customers), 2)
+    overdue = round(sum(float(c.get("overdue_amount", 0) or 0) for c in customers), 2)
+    risky = sorted(
+        [c for c in customers if float(c.get("risk_score", 0) or 0) >= 50],
+        key=lambda c: c.get("risk_score", 0),
+        reverse=True,
+    )
     return {
         "totalCredit": total_credit,
         "totalPaid": total_paid,
