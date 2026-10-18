@@ -324,7 +324,7 @@ async function queue(item) {
   if (!browserSaysOffline()) scheduleFlush();
 }
 
-const API = {
+export const API = {
   async getSettings() {
     const local = await db.getSettings();
     if (browserSaysOffline()) return local;
