@@ -1,5 +1,6 @@
 // UI interactions and DOM updates - Tabler redesign
 import { supabase } from "../supabase.js";
+import { API } from "./api.js";
 
 (function () {
   const $ = (id) => document.getElementById(id);
