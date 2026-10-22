@@ -1,10 +1,10 @@
-// UI interactions and DOM updates - Tabler redesign
+// CreditPulse frontend interactions. Data operations and calculations stay in the existing API and logic modules.
 import { supabase } from "../supabase.js";
 import { API } from "./api.js";
+import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
 
 (function () {
   const $ = (id) => document.getElementById(id);
-
   const views = {
     home: $("homeView"),
     report: $("reportView"),
@@ -29,121 +29,147 @@ import { API } from "./api.js";
   const analysisPanel = $("analysisPanel");
   const analysisRecommendation = $("analysisRecommendation");
   const analysisActions = $("analysisActions");
-
   const customerModalEl = $("customerDialog");
   const txnModalEl = $("txnDialog");
-  let customerModal, txnModal;
-
-  function initModals() {
-    if (window.bootstrap) {
-      customerModal = new bootstrap.Modal(customerModalEl);
-      txnModal = new bootstrap.Modal(txnModalEl);
-    } else {
-      customerModal = {
-        show: () => customerModalEl && customerModalEl.classList.add("show"),
-        hide: () => customerModalEl && customerModalEl.classList.remove("show"),
-      };
-      txnModal = {
-        show: () => txnModalEl && txnModalEl.classList.add("show"),
-        hide: () => txnModalEl && txnModalEl.classList.remove("show"),
-      };
-    }
-  }
-
   const customerForm = $("customerForm");
   const txnForm = $("txnForm");
   const txnTitle = $("txnTitle");
   const dueDateLabel = $("dueDateLabel");
   const paidDateLabel = $("paidDateLabel");
 
+  let customerModal;
+  let txnModal;
   let currentCustomerId = null;
   let currentView = "home";
   let cachedSettings = { appName: "CreditPulse", defaultCreditLimit: 5000, theme: "dark", version: "1.0.0" };
   let cachedCustomers = [];
+  let activeCustomer = null;
+  let activeMetrics = null;
+  let activeTransactions = [];
+  let currentCustomerFilter = "all";
 
-  const rupees = (n) => "\u20B9" + Number(n || 0).toLocaleString("en-IN");
-  const initials = (name) =>
-    (name || "?")
-      .split(" ")
-      .map((s) => s[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  const fmtDate = (d) =>
-    !d
-      ? "\u2014"
-      : new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-
-  const escapeHtml = (s) => {
-    const map = {
-      "\u0026": "\u0026amp;",
-      "\u003c": "\u0026lt;",
-      "\u003e": "\u0026gt;",
-      '\u0022': "\u0026quot;",
-      "\u0027": "\u0026#39;",
-    };
-    return String(s ?? "").replace(/[&<>"']/g, (ch) => map[ch] || ch);
+  const rupees = (value) => "₹" + Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+  const initials = (name) => String(name || "?").trim().split(/\s+/).filter(Boolean).map((part) => part[0]).join("").slice(0, 2).toUpperCase() || "?";
+  const fmtDate = (value) => {
+    if (!value) return "—";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
   };
+  const localDateInputValue = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  };
+  const escapeHtml = (value) => {
+    const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+    return String(value ?? "").replace(/[&<>"']/g, (character) => map[character]);
+  };
+  const setText = (id, value) => {
+    const element = $(id);
+    if (element) element.textContent = value == null ? "" : String(value);
+  };
+  const riskInfo = (score) => {
+    const label = getRiskLabel(Number(score) || 0);
+    if (label === "CRITICAL") return { label: "Critical risk", className: "risk-critical" };
+    if (label === "HIGH") return { label: "High risk", className: "risk-high" };
+    if (label === "MEDIUM") return { label: "Medium risk", className: "risk-medium" };
+    return { label: "Low risk", className: "risk-low" };
+  };
+  const needsFollowUp = (score) => ["HIGH", "CRITICAL"].includes(getRiskLabel(Number(score) || 0));
+  const normalizePhone = (phone) => String(phone || "").replace(/[^\d+]/g, "");
 
-  function toast(msg, isError = false) {
-    const t = $("toast");
+  function toast(message, isError = false) {
+    const element = $("toast");
     const body = $("toastBody");
-    if (!t || !body) return;
-    body.textContent = msg;
-    t.hidden = false;
-    t.className = "toast show" + (isError ? " error" : "");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(() => {
-      t.classList.remove("show");
-      t.hidden = true;
-    }, 2800);
+    if (!element || !body) return;
+    body.textContent = message;
+    element.hidden = false;
+    element.className = "toast" + (isError ? " error" : "");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { element.hidden = true; }, 3000);
   }
 
-  function setLoading(el, loading) {
-    if (!el) return;
-    el.disabled = loading;
-    el.dataset.originalText = el.dataset.originalText || el.textContent;
-    el.textContent = loading ? "\u2026" : el.dataset.originalText;
+  function setLoading(element, loading) {
+    if (!element) return;
+    element.disabled = loading;
+    if (!element.dataset.originalText) element.dataset.originalText = element.textContent;
+    element.textContent = loading ? "Saving…" : element.dataset.originalText;
   }
+
+  function showWorkflow(element) {
+    if (!element) return;
+    element.hidden = false;
+    document.body.classList.add("workflow-open");
+    const firstInput = element.querySelector("input:not([type=hidden]), select, button[data-workflow-close]");
+    if (firstInput) setTimeout(() => firstInput.focus({ preventScroll: true }), 40);
+  }
+
+  function hideWorkflow(element) {
+    if (!element) return;
+    element.hidden = true;
+    if ((!customerModalEl || customerModalEl.hidden) && (!txnModalEl || txnModalEl.hidden)) document.body.classList.remove("workflow-open");
+  }
+
+  function initModals() {
+    customerModal = { show: () => showWorkflow(customerModalEl), hide: () => hideWorkflow(customerModalEl) };
+    txnModal = { show: () => showWorkflow(txnModalEl), hide: () => hideWorkflow(txnModalEl) };
+  }
+
+  document.querySelectorAll("[data-workflow-close]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.workflowClose === "customer") customerModal?.hide();
+      else txnModal?.hide();
+    });
+  });
+  document.querySelectorAll("[data-open-customer]").forEach((button) => button.addEventListener("click", () => openCustomerModal()));
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (txnModalEl && !txnModalEl.hidden) txnModal?.hide();
+    else if (customerModalEl && !customerModalEl.hidden) customerModal?.hide();
+  });
 
   async function applySettings() {
     try {
-      const s = await API.getSettings();
-      cachedSettings = s;
-      document.body.setAttribute("data-bs-theme", s.theme === "light" ? "light" : "dark");
-      document.title = s.appName + " \u2014 Digital Notebook for Wholesalers";
-      if (heroTitle) heroTitle.textContent = s.appName;
-      if (currentView === "home" && !currentCustomerId) titleEl.textContent = "Customers";
-      versionLabel.textContent = s.version || "1.0.0";
-      const f = $("settingsForm");
-      if (f) {
-        f.elements.appName.value = s.appName;
-        f.elements.defaultCreditLimit.value = s.defaultCreditLimit;
-        f.elements.theme.value = s.theme || "dark";
+      const settings = await API.getSettings();
+      cachedSettings = settings;
+      document.body.setAttribute("data-bs-theme", settings.theme === "light" ? "light" : "dark");
+      document.title = (settings.appName || "CreditPulse") + " — Digital Notebook for Wholesalers";
+      if (heroTitle) heroTitle.textContent = settings.appName || "CreditPulse";
+      if (currentView === "home" && !currentCustomerId && titleEl) titleEl.textContent = "Customers";
+      if (versionLabel) versionLabel.textContent = settings.version || "1.0.0";
+      const form = $("settingsForm");
+      if (form) {
+        form.elements.appName.value = settings.appName || "CreditPulse";
+        form.elements.defaultCreditLimit.value = settings.defaultCreditLimit ?? 0;
+        form.elements.theme.value = settings.theme || "dark";
       }
-      if (customerForm) customerForm.elements.credit_limit.value = s.defaultCreditLimit;
-    } catch (err) {
-      toast("Failed to load settings \u2014 using defaults", true);
+      if (customerForm) customerForm.elements.credit_limit.value = settings.defaultCreditLimit ?? 0;
+      setText("newCustomerDefaultLimit", rupees(settings.defaultCreditLimit));
+      updateNewCustomerPreview();
+    } catch (error) {
+      toast("Failed to load settings — using defaults", true);
     }
   }
 
-  $("settingsForm")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = e.target.querySelector("[type=submit]");
-    setLoading(btn, true);
-    const fd = new FormData(e.target);
+  $("settingsForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = event.target.querySelector("[type=submit]");
+    setLoading(button, true);
+    const formData = new FormData(event.target);
     try {
       await API.saveSettings({
-        appName: String(fd.get("appName") || "CreditPulse").trim() || "CreditPulse",
-        defaultCreditLimit: Number(fd.get("defaultCreditLimit") || 0),
-        theme: fd.get("theme") === "light" ? "light" : "dark",
+        appName: String(formData.get("appName") || "CreditPulse").trim() || "CreditPulse",
+        defaultCreditLimit: Number(formData.get("defaultCreditLimit") || 0),
+        theme: formData.get("theme") === "light" ? "light" : "dark",
       });
       await applySettings();
       toast("Settings saved");
-    } catch (err) {
-      toast("Failed to save settings: " + err.message, true);
+    } catch (error) {
+      toast("Failed to save settings: " + error.message, true);
     } finally {
-      setLoading(btn, false);
+      setLoading(button, false);
     }
   });
 
@@ -152,54 +178,61 @@ import { API } from "./api.js";
     try {
       await API.clearAllData();
       cachedCustomers = [];
+      activeCustomer = null;
+      activeMetrics = null;
+      activeTransactions = [];
       toast("All data cleared");
       setView("home");
-    } catch (err) {
-      toast("Failed to clear data: " + err.message, true);
+    } catch (error) {
+      toast("Failed to clear data: " + error.message, true);
     }
   });
 
   function setActiveNav(name) {
-    document.querySelectorAll("[data-view]").forEach((el) => {
-      el.classList.toggle("active", el.dataset.view === name);
+    const active = name === "detail" ? "home" : name;
+    document.querySelectorAll("[data-view]").forEach((element) => {
+      element.classList.toggle("active", element.dataset.view === active);
     });
   }
 
   function setView(name) {
-    currentView = name;
+    const viewName = views[name] ? name : "home";
+    currentView = viewName;
     currentCustomerId = null;
-    Object.entries(views).forEach(([k, el]) => {
-      if (el) el.hidden = k !== name;
-    });
-    setActiveNav(name);
-    if (addCustomerBtn) addCustomerBtn.style.display = name === "home" ? "" : "none";
-    if (addCustomerBtnMobile) addCustomerBtnMobile.style.display = name === "home" ? "" : "none";
+    activeCustomer = null;
+    activeMetrics = null;
+    activeTransactions = [];
+    Object.entries(views).forEach(([key, element]) => { if (element) element.hidden = key !== viewName; });
+    document.body.dataset.activeView = viewName;
+    setActiveNav(viewName);
+    if (addCustomerBtn) addCustomerBtn.hidden = viewName !== "home";
+    if (addCustomerBtnMobile) addCustomerBtnMobile.hidden = viewName !== "home";
     const titles = {
-      home: { title: "Customers", pretitle: "Overview" },
-      report: { title: "Reports", pretitle: "Analytics" },
-      settings: { title: "Settings", pretitle: "Configuration" },
+      home: { title: "Customers", pretitle: new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }).toUpperCase() },
+      report: { title: "Reports", pretitle: "A clear view of your credit and collections" },
+      settings: { title: "App Settings", pretitle: "Make your notebook work for you" },
+      detail: { title: "Customer detail", pretitle: "CreditPulse · Customer ledger" },
     };
-    const t = titles[name] || titles.home;
-    titleEl.textContent = t.title;
-    if (pagePretitle) pagePretitle.textContent = t.pretitle;
-    location.hash = name === "home" ? "" : "#" + name;
-    if (name === "home") renderHome();
-    if (name === "report") renderReport();
+    if (titleEl) titleEl.textContent = titles[viewName].title;
+    if (pagePretitle) pagePretitle.textContent = titles[viewName].pretitle;
+    const hash = viewName === "home" ? "" : "#" + viewName;
+    if (location.hash !== hash) location.hash = hash;
+    if (viewName === "home") renderHome();
+    if (viewName === "report") renderReport();
   }
 
   document.querySelectorAll("[data-view]").forEach((link) => {
-    link.addEventListener("click", (e) => {
-      e.preventDefault();
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      customerModal?.hide();
+      txnModal?.hide();
       setView(link.dataset.view);
     });
   });
 
   async function doLogout() {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.warn("Sign out failed", e);
-    }
+    try { await supabase.auth.signOut(); }
+    catch (error) { console.warn("Sign out failed", error); }
     localStorage.removeItem("cp_session");
     window.location.href = "./login.html";
   }
@@ -208,406 +241,470 @@ import { API } from "./api.js";
 
   function showDetail(id) {
     currentCustomerId = id;
-    Object.values(views).forEach((v) => {
-      if (v) v.hidden = true;
-    });
+    currentView = "detail";
+    Object.values(views).forEach((element) => { if (element) element.hidden = true; });
     if (views.detail) views.detail.hidden = false;
-    if (addCustomerBtn) addCustomerBtn.style.display = "none";
-    if (addCustomerBtnMobile) addCustomerBtnMobile.style.display = "none";
-    location.hash = "#c/" + id;
+    document.body.dataset.activeView = "detail";
+    setActiveNav("home");
+    if (addCustomerBtn) addCustomerBtn.hidden = true;
+    if (addCustomerBtnMobile) addCustomerBtnMobile.hidden = true;
+    if (titleEl) titleEl.textContent = "Customer detail";
+    if (pagePretitle) pagePretitle.textContent = "CreditPulse · Customer ledger";
+    const nextHash = "#c/" + encodeURIComponent(String(id));
+    if (location.hash !== nextHash) location.hash = nextHash;
     loadCustomer(id);
   }
 
-  document.getElementById("brandLink")?.addEventListener("click", (e) => {
-    e.preventDefault();
+  $("brandLink")?.addEventListener("click", (event) => {
+    event.preventDefault();
     setView("home");
+  });
+  $("detailBackBtn")?.addEventListener("click", () => setView("home"));
+  $("decisionMasterBtn")?.addEventListener("click", () => {
+    if (analysisPanel) analysisPanel.scrollIntoView({ behavior: "smooth", block: "center" });
   });
 
   async function fetchCustomers() {
-    try {
-      cachedCustomers = await API.listCustomers();
-    } catch (err) {
-      console.warn("Failed to prefetch customers:", err.message);
-    }
+    try { cachedCustomers = await API.listCustomers(); }
+    catch (error) { console.warn("Failed to prefetch customers:", error.message); }
   }
 
   function riskBadge(score) {
-    if (score >= 75) return '<span class="badge bg-danger-lt">Critical</span>';
-    if (score >= 50) return '<span class="badge bg-danger-lt">High</span>';
-    if (score >= 25) return '<span class="badge bg-warning-lt">Medium</span>';
-    return '<span class="badge bg-success-lt">Low</span>';
+    const risk = riskInfo(score);
+    return '<span class="risk-pill ' + risk.className + '">' + risk.label + "</span>";
   }
 
   function labelBadges(labels) {
-    return (labels || [])
-      .map((l) => {
-        const cls =
-          l === "overdue" || l === "high-risk"
-            ? "bg-danger-lt"
-            : l === "near-limit"
-            ? "bg-warning-lt"
-            : "bg-secondary-lt";
-        return '<span class="badge ' + cls + ' me-1">' + escapeHtml(l) + "</span>";
-      })
-      .join("");
+    return (labels || []).map((label) => '<span class="count-pill">' + escapeHtml(label) + "</span>").join("");
+  }
+
+  function updateTopRisk(summary) {
+    const risky = Array.isArray(summary?.risky) ? summary.risky : [];
+    const card = $("topRiskButton");
+    if (!card) return;
+    card.hidden = risky.length === 0;
+    setText("homeTotalOutstanding", rupees(summary?.outstanding));
+    setText("homeOverdueBalance", rupees(summary?.overdue));
+    setText("homeAttentionCount", risky.length + (risky.length === 1 ? " customer" : " customers"));
+    setText("filterAllCount", summary?.customers || 0);
+    setText("filterAttentionCount", risky.length);
+    if (!risky.length) { card.removeAttribute("data-customer-id"); return; }
+    const customer = risky[0];
+    card.dataset.customerId = String(customer.id);
+    setText("topRiskInitials", initials(customer.name));
+    setText("topRiskName", customer.name || "Customer");
+    setText("topRiskPhone", customer.phone || "Phone not provided");
+    setText("topRiskOutstanding", rupees(customer.outstanding));
+    setText("topRiskScore", (Number(customer.risk_score) || 0) + "/100");
+    const risk = riskInfo(customer.risk_score);
+    const badge = $("topRiskBadge");
+    if (badge) { badge.textContent = risk.label; badge.className = "risk-pill " + risk.className; }
+    setText("topRiskRecommendation", risk.label === "Critical" || risk.label === "High risk" ? "Review this customer before extending more credit." : "Check the ledger and agree on the next payment.");
+  }
+
+  function renderCustomerCardInList(customer) {
+    const score = Number(customer.risk_score) || 0;
+    const state = needsFollowUp(score) ? "Needs follow-up" : Number(customer.outstanding) > 0 ? "Credit active" : "Settled";
+    const tone = score >= 50 ? "high" : score >= 25 ? "medium" : "";
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "customer-card";
+    card.innerHTML =
+      '<div class="customer-card-top"><div class="customer-identity"><span class="avatar-initials">' + escapeHtml(initials(customer.name)) + '</span><span class="customer-identity-text"><strong>' + escapeHtml(customer.name || "Customer") + '</strong><small>' + escapeHtml(customer.phone || "Phone not provided") + '</small></span></div><i class="ti ti-chevron-right customer-chevron" aria-hidden="true"></i></div>' +
+      '<div class="customer-card-balance"><div><span>Outstanding</span><strong>' + rupees(customer.outstanding) + '</strong></div><span class="risk-score-inline ' + tone + '">' + escapeHtml(state) + '</span></div>' +
+      '<div class="customer-card-bottom">' + riskBadge(score) + '<span class="risk-score-inline ' + tone + '">Risk · ' + score + '</span></div>';
+    card.addEventListener("click", () => showDetail(customer.id));
+    return card;
+  }
+
+  async function updateHomeOverview() {
+    try { updateTopRisk(await API.getSummary()); }
+    catch (error) { console.warn("Failed to load customer overview:", error.message); }
   }
 
   async function renderHome(filter) {
     try {
-      const q = (filter ?? searchInput?.value ?? "").trim().toLowerCase();
-      const all = cachedCustomers.length ? cachedCustomers : await API.listCustomers();
-      if (!cachedCustomers.length && all.length) cachedCustomers = all;
-      const list = all.filter(
-        (c) => !q || c.name.toLowerCase().includes(q) || (c.phone || "").includes(q)
-      );
-      if (!customerList) return;
-      customerList.innerHTML = "";
-      if (emptyList) emptyList.hidden = list.length > 0;
-      list.forEach((c) => {
-        const tr = document.createElement("tr");
-        tr.style.cursor = "pointer";
-        tr.innerHTML =
-          '<td><div class="d-flex align-items-center">' +
-          '<span class="avatar-initials me-2">' +
-          initials(c.name) +
-          '</span><div><div class="fw-bold">' +
-          escapeHtml(c.name) +
-          "</div></div></div></td>" +
-          '<td class="text-secondary">' +
-          escapeHtml(c.phone || "\u2014") +
-          "</td>" +
-          '<td class="' +
-          (c.outstanding > 0 ? "text-danger fw-bold" : "") +
-          '">' +
-          rupees(c.outstanding) +
-          "</td>" +
-          "<td>" +
-          riskBadge(c.risk_score ?? 0) +
-          ' <span class="text-secondary ms-1">' +
-          (c.risk_score ?? 0) +
-          "</span></td>" +
-          "<td>" +
-          labelBadges(c.labels) +
-          "</td>" +
-          '<td><a href="#" class="text-secondary"><i class="ti ti-chevron-right"></i></a></td>';
-        tr.addEventListener("click", () => showDetail(c.id));
-        customerList.appendChild(tr);
+      const query = String(filter ?? searchInput?.value ?? "").trim().toLowerCase();
+      if (!cachedCustomers.length) {
+        if (customerList) {
+          customerList.setAttribute("aria-busy", "true");
+          customerList.innerHTML = '<div class="loading-state">Loading customers…</div>';
+        }
+        cachedCustomers = await API.listCustomers();
+      }
+      if (customerList) customerList.removeAttribute("aria-busy");
+      const all = Array.isArray(cachedCustomers) ? cachedCustomers : [];
+      const filtered = all.filter((customer) => {
+        const name = String(customer.name || "").toLowerCase();
+        const phone = String(customer.phone || "").toLowerCase();
+        const matchesQuery = !query || name.includes(query) || phone.includes(query);
+        const matchesFilter = currentCustomerFilter === "all" || needsFollowUp(customer.risk_score);
+        return matchesQuery && matchesFilter;
       });
-    } catch (err) {
-      toast("Failed to load customers: " + err.message, true);
+      if (customerList) {
+        customerList.replaceChildren();
+        filtered.forEach((customer) => customerList.appendChild(renderCustomerCardInList(customer)));
+      }
+      if (emptyList) {
+        emptyList.hidden = filtered.length > 0;
+        const isEmpty = all.length === 0;
+        setText("emptyListTitle", isEmpty ? "No customers yet" : "No matching customers");
+        setText("emptyListMessage", isEmpty ? "Add a customer to start a credit ledger." : "Try another name or phone number, or change the filter.");
+        const addButton = $("emptyAddCustomer");
+        if (addButton) addButton.hidden = !isEmpty;
+      }
+      if (typeof filter === "undefined") await updateHomeOverview();
+    } catch (error) {
+      if (customerList) { customerList.replaceChildren(); customerList.removeAttribute("aria-busy"); }
+      setText("emptyListTitle", "Couldn’t load customers");
+      setText("emptyListMessage", "Check your connection and try again.");
+      if ($("emptyAddCustomer")) $("emptyAddCustomer").hidden = true;
+      toast("Failed to load customers: " + error.message, true);
       if (emptyList) emptyList.hidden = false;
     }
   }
 
-  searchInput?.addEventListener("input", (e) => renderHome(e.target.value));
+  searchInput?.addEventListener("input", (event) => renderHome(event.target.value));
+  document.querySelectorAll("[data-customer-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+      currentCustomerFilter = button.dataset.customerFilter === "attention" ? "attention" : "all";
+      document.querySelectorAll("[data-customer-filter]").forEach((item) => item.classList.toggle("active", item === button));
+      renderHome(searchInput?.value || "");
+    });
+  });
+  $("topRiskButton")?.addEventListener("click", (event) => {
+    const id = event.currentTarget.dataset.customerId;
+    if (id) showDetail(id);
+  });
+
+  function renderRiskCustomer(customer) {
+    const score = Number(customer.risk_score) || 0;
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "risk-customer-card";
+    card.innerHTML =
+      '<span class="risk-customer-header"><span class="avatar-initials">' + escapeHtml(initials(customer.name)) + '</span><span><strong>' + escapeHtml(customer.name || "Customer") + '</strong><small>' + escapeHtml(customer.phone || "Phone not provided") + '</small></span><i class="ti ti-chevron-right" aria-hidden="true"></i></span>' +
+      '<span class="risk-customer-footer"><span>Outstanding<strong>' + rupees(customer.outstanding) + '</strong></span><span class="risk-score-inline ' + (score >= 50 ? "high" : "medium") + '">Risk score ' + score + '/100<br>' + riskBadge(score) + '</span></span>';
+    card.addEventListener("click", () => showDetail(customer.id));
+    return card;
+  }
 
   async function renderReport() {
     try {
-      const s = await API.getSummary();
-      $("rTotalCredit").textContent = rupees(s.totalCredit);
-      $("rTotalPaid").textContent = rupees(s.totalPaid);
-      $("rOutstanding").textContent = rupees(s.outstanding);
-      $("rOverdue").textContent = rupees(s.overdue);
-      $("rCustomers").textContent = (s.customers || 0) + " customers";
-      const risky = $("riskyList");
-      if (!risky) return;
-      risky.innerHTML = "";
-      if ($("emptyRisky")) $("emptyRisky").hidden = (s.risky || []).length > 0;
-      (s.risky || []).forEach((c) => {
-        const tr = document.createElement("tr");
-        tr.style.cursor = "pointer";
-        tr.innerHTML =
-          '<td><div class="d-flex align-items-center">' +
-          '<span class="avatar-initials me-2">' +
-          initials(c.name) +
-          '</span><div class="fw-bold">' +
-          escapeHtml(c.name) +
-          "</div></div></td>" +
-          '<td class="text-secondary">' +
-          escapeHtml(c.phone || "\u2014") +
-          "</td>" +
-          '<td class="text-danger fw-bold">' +
-          rupees(c.outstanding) +
-          "</td>" +
-          "<td>" +
-          riskBadge(c.risk_score ?? 0) +
-          ' <span class="text-secondary ms-1">' +
-          (c.risk_score ?? 0) +
-          "</span></td>" +
-          "<td>" +
-          labelBadges(c.labels) +
-          "</td>";
-        tr.addEventListener("click", () => showDetail(c.id));
-        risky.appendChild(tr);
-      });
-    } catch (err) {
-      toast("Failed to load report: " + err.message, true);
+      const summary = await API.getSummary();
+      const totalCredit = Number(summary.totalCredit) || 0;
+      const totalPaid = Number(summary.totalPaid) || 0;
+      const outstanding = Number(summary.outstanding) || 0;
+      const overdue = Math.min(outstanding, Number(summary.overdue) || 0);
+      const notYetDue = Math.max(0, outstanding - overdue);
+      setText("rTotalCredit", rupees(totalCredit));
+      setText("rTotalPaid", rupees(totalPaid));
+      setText("rOutstanding", rupees(outstanding));
+      setText("rOverdue", rupees(overdue));
+      const risky = Array.isArray(summary.risky) ? summary.risky : [];
+      setText("rCustomers", risky.length + " to follow up");
+      setText("reportAsOf", "As of " + new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }));
+      const collectionBase = totalPaid + notYetDue + overdue;
+      const paidWidth = collectionBase ? totalPaid / collectionBase * 100 : 0;
+      const notDueWidth = collectionBase ? notYetDue / collectionBase * 100 : 0;
+      const overdueWidth = collectionBase ? overdue / collectionBase * 100 : 0;
+      const paidBar = $("collectionPaidBar");
+      const notDueBar = $("collectionNotDueBar");
+      const overdueBar = $("collectionOverdueBar");
+      if (paidBar) paidBar.style.width = paidWidth + "%";
+      if (notDueBar) notDueBar.style.width = notDueWidth + "%";
+      if (overdueBar) overdueBar.style.width = overdueWidth + "%";
+      setText("collectionPercent", totalCredit ? (totalPaid / totalCredit * 100).toLocaleString("en-IN", { maximumFractionDigits: 1 }) + "%" : "0%");
+      setText("collectionSubtitle", totalCredit ? rupees(totalPaid) + " collected from " + rupees(totalCredit) + " in credit given." : "Your collection summary will appear here once you record credit.");
+      setText("collectionPaid", rupees(totalPaid));
+      setText("collectionNotDue", rupees(notYetDue));
+      setText("collectionOverdue", rupees(overdue));
+      const list = $("riskyList");
+      if (list) {
+        list.replaceChildren();
+        risky.forEach((customer) => list.appendChild(renderRiskCustomer(customer)));
+      }
+      if ($("emptyRisky")) $("emptyRisky").hidden = risky.length > 0;
+    } catch (error) {
+      toast("Failed to load report: " + error.message, true);
     }
   }
 
-  function openCustomerModal() {
-    customerForm.reset();
-    customerForm.elements.credit_limit.value = cachedSettings.defaultCreditLimit || 0;
-    if (customerModal) customerModal.show();
-    else if (customerModalEl) customerModalEl.classList.add("show");
+  function updateNewCustomerPreview() {
+    if (!customerForm) return;
+    const limit = Number(customerForm.elements.credit_limit?.value) || 0;
+    setText("newCustomerAvailable", rupees(limit));
   }
+  customerForm?.elements.credit_limit?.addEventListener("input", updateNewCustomerPreview);
 
+  function openCustomerModal() {
+    customerForm?.reset();
+    if (customerForm?.elements.credit_limit) customerForm.elements.credit_limit.value = cachedSettings.defaultCreditLimit ?? 5000;
+    updateNewCustomerPreview();
+    customerModal?.show();
+  }
   addCustomerBtn?.addEventListener("click", openCustomerModal);
   addCustomerBtnMobile?.addEventListener("click", openCustomerModal);
 
-  customerForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = customerForm.querySelector("[type=submit]");
-    setLoading(btn, true);
-    const fd = new FormData(customerForm);
+  customerForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = customerForm.querySelector("[type=submit]");
+    setLoading(button, true);
+    const formData = new FormData(customerForm);
     try {
-      await API.createCustomer({
-        name: fd.get("name"),
-        phone: fd.get("phone"),
-        credit_limit: Number(fd.get("credit_limit") || 0),
-      });
+      await API.createCustomer({ name: formData.get("name"), phone: formData.get("phone"), credit_limit: Number(formData.get("credit_limit") || 0) });
       cachedCustomers = [];
-      if (customerModal) customerModal.hide();
-      else if (customerModalEl) customerModalEl.classList.remove("show");
+      customerModal?.hide();
       toast("Customer added");
+      if (searchInput) searchInput.value = "";
+      currentCustomerFilter = "all";
+      document.querySelectorAll("[data-customer-filter]").forEach((item) => item.classList.toggle("active", item.dataset.customerFilter === "all"));
       await renderHome();
-    } catch (err) {
-      toast("Failed to create customer: " + err.message, true);
+    } catch (error) {
+      toast("Failed to create customer: " + error.message, true);
     } finally {
-      setLoading(btn, false);
+      setLoading(button, false);
     }
   });
 
   async function loadCustomer(id) {
-    if (customerCard) customerCard.innerHTML = '<div class="card-body text-center py-5 text-secondary">Loading\u2026</div>';
-    if (txnList) txnList.innerHTML = "";
+    if (customerCard) customerCard.innerHTML = '<div class="loading-state">Loading customer ledger…</div>';
+    if (txnList) txnList.replaceChildren();
     if (analysisPanel) analysisPanel.hidden = true;
     try {
-      const { customer, transactions, processed_info, decision } = await API.getCustomer(id);
-      titleEl.textContent = customer.name;
-      if (pagePretitle) pagePretitle.textContent = "Customer Detail";
-      renderCustomerCard(customer, processed_info);
-      renderTxns(transactions);
-      renderAnalysisPanel(decision);
-    } catch (err) {
-      toast("Failed to load customer: " + err.message, true);
+      const result = await API.getCustomer(id);
+      activeCustomer = result.customer;
+      activeMetrics = result.processed_info || {};
+      activeTransactions = Array.isArray(result.transactions) ? result.transactions : [];
+      if (titleEl) titleEl.textContent = "Customer detail";
+      if (pagePretitle) pagePretitle.textContent = activeCustomer?.name || "CreditPulse · Customer ledger";
+      renderCustomerCard(activeCustomer, activeMetrics);
+      renderTxns(activeTransactions, activeMetrics);
+      renderAnalysisPanel(result.decision);
+    } catch (error) {
+      toast("Failed to load customer: " + error.message, true);
       setView("home");
     }
   }
 
-  function renderCustomerCard(c, metrics) {
-    const outstanding = metrics?.balance ?? 0;
-    const totalCredit = metrics?.total_credit ?? 0;
-    const totalPaid = metrics?.total_payment ?? 0;
-    const riskScore = metrics?.risk_score ?? 0;
+  function renderCustomerCard(customer, metrics) {
+    if (!customerCard) return;
+    const outstanding = Number(metrics?.balance) || 0;
+    const totalCredit = Number(metrics?.total_credit) || 0;
+    const totalPaid = Number(metrics?.total_payment) || 0;
+    const creditLimit = Number(customer?.credit_limit) || 0;
+    const riskScore = Number(metrics?.risk_score) || 0;
+    const overdue = Number(metrics?.overdue_amount) || 0;
+    const daysLate = Number(metrics?.days_late) || 0;
+    const remaining = Math.max(0, creditLimit - outstanding);
+    const usedPercent = creditLimit > 0 ? Math.min(100, Math.max(0, outstanding / creditLimit * 100)) : 0;
+    const phone = String(customer?.phone || "");
+    const phoneHref = normalizePhone(phone);
+    const risk = riskInfo(riskScore);
+    const overdueBadge = overdue > 0 ? '<span class="overdue-tag">' + rupees(overdue) + ' overdue</span>' : '<span class="overdue-tag settled-tag">No overdue balance</span>';
     customerCard.innerHTML =
-      '<div class="card-body">' +
-      '<div class="d-flex align-items-start justify-content-between mb-3">' +
-      '<div class="d-flex align-items-center">' +
-      '<span class="avatar-initials me-3" style="width:3rem;height:3rem;font-size:1.1rem;">' +
-      initials(c.name) +
-      "</span>" +
-      "<div>" +
-      '<div class="h2 mb-0">' +
-      escapeHtml(c.name) +
-      "</div>" +
-      '<div class="text-secondary">\uD83D\uDCDE ' +
-      escapeHtml(c.phone || "\u2014") +
-      "</div></div></div>" +
-      '<button id="deleteCustomerBtn" class="btn btn-outline-danger btn-sm">' +
-      '<i class="ti ti-trash me-1"></i> Delete</button></div>' +
-      '<div class="row g-3 mb-3">' +
-      '<div class="col-6 col-md-3"><div class="stat-card outstanding"><div class="label">Outstanding</div><div class="value">' +
-      rupees(outstanding) +
-      "</div></div></div>" +
-      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Credit Limit</div><div class="value">' +
-      rupees(c.credit_limit) +
-      "</div></div></div>" +
-      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Credit</div><div class="value">' +
-      rupees(totalCredit) +
-      "</div></div></div>" +
-      '<div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Paid</div><div class="value">' +
-      rupees(totalPaid) +
-      "</div></div></div></div>" +
-      '<div class="mb-1 d-flex justify-content-between">' +
-      '<span class="text-secondary">Risk score</span>' +
-      '<span class="fw-bold">' +
-      riskScore +
-      "/100</span></div>" +
-      '<div class="risk-progress"><div class="risk-progress-bar" style="width:' +
-      Math.min(riskScore, 100) +
-      '%"></div></div></div>';
-
+      '<div class="customer-detail-heading"><span class="avatar-initials">' + escapeHtml(initials(customer?.name)) + '</span><span class="customer-detail-identity"><h2>' + escapeHtml(customer?.name || "Customer") + '</h2><a href="tel:' + escapeHtml(phoneHref) + '">' + escapeHtml(phone || "Phone not provided") + '</a></span><button class="delete-customer-button" id="deleteCustomerBtn" type="button" aria-label="Delete customer"><i class="ti ti-trash" aria-hidden="true"></i></button></div>' +
+      '<div class="detail-outstanding"><span class="detail-outstanding-label">Outstanding balance</span><div class="detail-balance-row"><strong>' + rupees(outstanding) + '</strong>' + overdueBadge + '</div><div class="overdue-meta"><span>' + (overdue > 0 ? daysLate + " days late" : risk.label) + '</span><span>Credit limit ' + rupees(creditLimit) + '</span></div><div class="credit-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + usedPercent.toFixed(0) + '"><span style="width:' + usedPercent.toFixed(2) + '%"></span></div><div class="credit-limit-row"><span>' + usedPercent.toFixed(0) + '% used</span><strong class="available">' + rupees(remaining) + ' available</strong></div></div>';
+    setText("detailTotalCredit", rupees(totalCredit));
+    setText("detailTotalPaid", rupees(totalPaid));
     $("deleteCustomerBtn")?.addEventListener("click", async () => {
-      if (!confirm("Delete " + c.name + " and all their transactions? This cannot be undone.")) return;
+      if (!confirm("Delete " + customer.name + " and all their transactions? This cannot be undone.")) return;
       try {
-        await API.deleteCustomer(c.id);
+        await API.deleteCustomer(customer.id);
         cachedCustomers = [];
-        toast(c.name + " deleted");
+        toast("Customer deleted");
         setView("home");
-      } catch (err) {
-        toast("Failed to delete: " + err.message, true);
+      } catch (error) {
+        toast("Failed to delete: " + error.message, true);
       }
     });
   }
 
   function renderAnalysisPanel(decision) {
-    if (!decision || !decision.metrics || !decision.decision) {
+    if (!decision || !decision.metrics || !decision.decision || !analysisPanel) {
       if (analysisPanel) analysisPanel.hidden = true;
       return;
     }
-    const { metrics, decision: dec, automation } = decision;
+    const metrics = decision.metrics;
+    const outcome = decision.decision;
+    const automation = decision.automation || {};
+    const risk = riskInfo(metrics.risk_score);
+    const badge = $("analysisRiskBadge");
+    if (badge) { badge.textContent = risk.label; badge.className = "risk-pill " + risk.className; }
     analysisPanel.hidden = false;
-    analysisRecommendation.textContent =
-      metrics.risk_label + " risk (score " + metrics.risk_score + "/100) \u2014 " + dec.recommendation;
-    analysisActions.innerHTML = "";
-    if (dec.should_remind && automation && automation.whatsapp_url) {
-      const a = document.createElement("a");
-      a.href = automation.whatsapp_url;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.className = "btn btn-success";
-      a.innerHTML = '<i class="ti ti-brand-whatsapp me-1"></i> Send WhatsApp reminder';
-      analysisActions.appendChild(a);
+    if (analysisRecommendation) analysisRecommendation.textContent = risk.label + " (score " + metrics.risk_score + "/100) — " + outcome.recommendation;
+    if (!analysisActions) return;
+    analysisActions.replaceChildren();
+    const phoneHref = normalizePhone(activeCustomer?.phone);
+    if (phoneHref) {
+      const call = document.createElement("a");
+      call.className = "button button-outline";
+      call.href = "tel:" + phoneHref;
+      call.innerHTML = '<i class="ti ti-phone" aria-hidden="true"></i>Call customer';
+      analysisActions.appendChild(call);
     }
-    if (dec.should_call && automation && automation.tel_url) {
-      const a = document.createElement("a");
-      a.href = automation.tel_url;
-      a.className = "btn btn-primary";
-      a.innerHTML = '<i class="ti ti-phone me-1"></i> Call customer';
-      analysisActions.appendChild(a);
+    if (outcome.should_remind && automation.whatsapp_url) {
+      const reminder = document.createElement("a");
+      reminder.className = "button button-success";
+      reminder.href = automation.whatsapp_url;
+      reminder.target = "_blank";
+      reminder.rel = "noopener noreferrer";
+      reminder.innerHTML = '<i class="ti ti-brand-whatsapp" aria-hidden="true"></i>Send WhatsApp reminder';
+      analysisActions.appendChild(reminder);
     }
   }
 
-  function renderTxns(txns) {
+  function renderTxns(transactions, metrics) {
     if (!txnList) return;
-    txnList.innerHTML = "";
-    if (emptyTxn) emptyTxn.hidden = (txns || []).length > 0;
-    (txns || []).forEach((t) => {
-      const tr = document.createElement("tr");
-      const isCredit = t.type === "credit";
-      const date = isCredit ? "Due " + fmtDate(t.due_date) : "Paid " + fmtDate(t.paid_date);
-      const badgeClass = isCredit ? "bg-orange-lt" : "bg-success-lt";
-      const label = isCredit ? "Credit given" : "Payment received";
-      const amountClass = isCredit ? "text-orange" : "text-success";
-      const sign = isCredit ? "+" : "\u2212";
-      tr.innerHTML =
-        "<td><span class=\"badge " +
-        badgeClass +
-        "\">" +
-        label +
-        "</span></td>" +
-        "<td class=\"text-secondary\">" +
-        date +
-        "</td>" +
-        "<td class=\"text-end fw-bold " +
-        amountClass +
-        "\">" +
-        sign +
-        rupees(t.amount) +
-        "</td>";
-      txnList.appendChild(tr);
+    txnList.replaceChildren();
+    const rows = Array.isArray(transactions) ? transactions : [];
+    setText("detailTxnCount", rows.length + (rows.length === 1 ? " entry" : " entries"));
+    if (emptyTxn) emptyTxn.hidden = rows.length > 0;
+    if (rows.length) txnList.hidden = false;
+    rows.forEach((transaction) => {
+      const isCredit = transaction.type === "credit";
+      const item = document.createElement("article");
+      item.className = "transaction-item";
+      const dateText = isCredit ? "Due " + fmtDate(transaction.due_date) : "Paid on " + fmtDate(transaction.paid_date);
+      item.innerHTML =
+        '<span class="transaction-item-main"><span class="transaction-icon ' + (isCredit ? "credit" : "payment") + '"><i class="ti ' + (isCredit ? "ti-arrow-up-right" : "ti-arrow-down-left") + '" aria-hidden="true"></i></span><span class="transaction-info"><strong>' + (isCredit ? "Credit Given" : "Payment Received") + '</strong><span>' + fmtDate(transaction.created_at) + '</span><small>' + dateText + '</small></span></span><strong class="transaction-amount ' + (isCredit ? "credit" : "payment") + '">' + (isCredit ? "+ " : "− ") + rupees(transaction.amount) + '</strong>';
+      txnList.appendChild(item);
     });
   }
 
-  function openTxn(type) {
-    if (!txnForm) return;
-    txnForm.reset();
-    txnForm.elements["type"].value = type;
-    if (txnTitle) txnTitle.textContent = type === "credit" ? "Credit given to customer" : "Payment received";
-    if (dueDateLabel) dueDateLabel.hidden = type !== "credit";
-    if (paidDateLabel) paidDateLabel.hidden = type !== "payment";
-    const today = new Date().toISOString().slice(0, 10);
-    if (type === "payment" && txnForm.elements["paid_date"]) {
-      txnForm.elements["paid_date"].value = today;
+  function updateTransactionPreview() {
+    if (!txnForm || !activeCustomer) return;
+    const type = txnForm.elements.type?.value || "credit";
+    const amount = Math.max(0, Number(txnForm.elements.amount?.value) || 0);
+    const current = Number(activeMetrics?.balance) || 0;
+    const creditLimit = Number(activeCustomer.credit_limit) || 0;
+    const dueDate = txnForm.elements.due_date?.value || null;
+    const paidDate = txnForm.elements.paid_date?.value || null;
+    const preview = amount > 0 ? buildCustomerMetrics(activeCustomer, activeTransactions.concat([{
+      id: "preview-transaction",
+      customer_id: activeCustomer.id,
+      type,
+      amount,
+      due_date: dueDate,
+      paid_date: paidDate,
+      created_at: new Date().toISOString(),
+    }])) : activeMetrics;
+    const nextBalance = Number(preview?.balance) || 0;
+    const remaining = Math.max(0, creditLimit - nextBalance);
+    const overLimit = creditLimit > 0 && nextBalance > creditLimit;
+    const status = $("txnPreviewStatus");
+    if (status) {
+      status.textContent = creditLimit <= 0 ? "No limit set" : overLimit ? "Over limit" : "Within limit";
+      status.className = "status-pill" + (overLimit ? " over-limit" : "");
     }
-    if (txnModal) txnModal.show();
-    else if (txnModalEl) txnModalEl.classList.add("show");
+    setText("txnPreviewCurrent", rupees(current));
+    setText("txnPreviewActionLabel", type === "credit" ? "New credit" : "Payment received");
+    setText("txnPreviewChange", (type === "credit" ? "+ " : "− ") + rupees(amount));
+    setText("txnPreviewOutstanding", rupees(nextBalance));
+    setText("txnPreviewRemaining", creditLimit > 0 ? rupees(remaining) : "No limit set");
+    setText("txnPreviewOverdue", rupees(preview?.overdue_amount));
+    setText("txnPreviewNote", "Estimate using the existing ledger calculation; final totals update after saving.");
+    const help = $("txnAmountHelp");
+    if (help) help.textContent = type === "credit" ? "This amount will be added to the customer’s balance." : "Enter the amount received from the customer.";
+    const riskCallout = $("txnRiskCallout");
+    const successCallout = $("txnSuccessCallout");
+    if (riskCallout) riskCallout.hidden = type !== "credit" || Number(activeMetrics?.risk_score) < 50;
+    if (successCallout) successCallout.hidden = type !== "payment";
+    const riskTitle = $("txnRiskTitle");
+    const riskMessage = $("txnRiskMessage");
+    if (riskTitle) riskTitle.textContent = riskInfo(activeMetrics?.risk_score).label + " customer · " + (Number(activeMetrics?.risk_score) || 0) + "/100";
+    if (riskMessage) riskMessage.textContent = rupees(activeMetrics?.overdue_amount) + " is currently overdue. Review before extending more credit.";
   }
 
-  $("addCreditBtn")?.addEventListener("click", function () {
-    openTxn("credit");
-  });
-  $("addPaymentBtn")?.addEventListener("click", function () {
-    openTxn("payment");
-  });
+  function openTxn(type) {
+    if (!txnForm || !currentCustomerId || !activeCustomer) return toast("Open a customer ledger first", true);
+    txnForm.reset();
+    txnForm.elements.type.value = type;
+    if (txnTitle) txnTitle.textContent = type === "credit" ? "Credit Given" : "Payment Received";
+    setText("txnHeadline", type === "credit" ? "Record a credit sale" : "Record a payment");
+    setText("txnDescription", type === "credit" ? "Add the amount owed and agree on a due date." : "Keep every collection in the customer’s ledger.");
+    if (dueDateLabel) dueDateLabel.hidden = type !== "credit";
+    if (paidDateLabel) paidDateLabel.hidden = type !== "payment";
+    if (type === "payment" && txnForm.elements.paid_date) txnForm.elements.paid_date.value = localDateInputValue();
+    setText("txnCustomerInitials", initials(activeCustomer.name));
+    setText("txnCustomerName", activeCustomer.name || "Customer");
+    setText("txnCustomerPhone", activeCustomer.phone || "Phone not provided");
+    setText("txnCurrentOutstanding", rupees(activeMetrics?.balance));
+    setText("txnBalanceLabel", type === "credit" ? "Available credit" : "Overdue balance");
+    const limit = Number(activeCustomer.credit_limit) || 0;
+    const remaining = Math.max(0, limit - (Number(activeMetrics?.balance) || 0));
+    setText("txnCreditRemaining", type === "credit" ? (limit > 0 ? rupees(remaining) : "No limit set") : rupees(activeMetrics?.overdue_amount));
+    const dueHelp = $("dueDateHelp");
+    if (dueHelp) dueHelp.textContent = "Choose the date you and the customer agreed payment is due.";
+    updateTransactionPreview();
+    txnModal?.show();
+  }
 
-  txnForm?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const btn = txnForm.querySelector("[type=submit]");
-    setLoading(btn, true);
-    const fd = new FormData(txnForm);
-    const type = fd.get("type");
-    const payload = {
-      customer_id: currentCustomerId,
-      type: type,
-      amount: Number(fd.get("amount")),
-    };
-    if (type === "credit") payload.due_date = fd.get("due_date");
-    else payload.paid_date = fd.get("paid_date");
+  $("addCreditBtn")?.addEventListener("click", () => openTxn("credit"));
+  $("addPaymentBtn")?.addEventListener("click", () => openTxn("payment"));
+  txnForm?.elements.amount?.addEventListener("input", updateTransactionPreview);
+  txnForm?.elements.due_date?.addEventListener("input", updateTransactionPreview);
+  txnForm?.elements.paid_date?.addEventListener("input", updateTransactionPreview);
 
+  txnForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = txnForm.querySelector("[type=submit]");
+    setLoading(button, true);
+    const formData = new FormData(txnForm);
+    const type = formData.get("type");
+    const payload = { customer_id: currentCustomerId, type, amount: Number(formData.get("amount")) };
+    if (type === "credit") payload.due_date = formData.get("due_date");
+    else payload.paid_date = formData.get("paid_date");
     if (type === "credit" && !payload.due_date) {
-      setLoading(btn, false);
+      setLoading(button, false);
       return toast("Pick a due date");
     }
     if (type === "payment" && !payload.paid_date) {
-      setLoading(btn, false);
+      setLoading(button, false);
       return toast("Pick a paid date");
     }
-
     try {
-      const resp = await API.createTransactionWithDecision(payload);
-      if (txnModal) txnModal.hide();
-      else if (txnModalEl) txnModalEl.classList.remove("show");
-      toast("Saved");
-      const decisionPayload =
-        (resp && resp.decision && resp.decision.output) ||
-        (resp && resp.decision && resp.decision.decision_combined) ||
-        (resp && resp.decision);
-      if (decisionPayload && decisionPayload.metrics) {
-        const metrics = decisionPayload.metrics;
-        const idx = cachedCustomers.findIndex((c) => c.id === currentCustomerId);
-        if (idx >= 0) {
-          cachedCustomers[idx].risk_score = metrics.risk_score;
-          cachedCustomers[idx].outstanding = metrics.balance;
-        } else {
-          cachedCustomers = [];
-        }
-      } else {
-        cachedCustomers = [];
-      }
-      loadCustomer(currentCustomerId);
-    } catch (err) {
-      toast("Failed to save transaction: " + err.message, true);
+      await API.createTransactionWithDecision(payload);
+      txnModal?.hide();
+      toast(type === "credit" ? "Credit saved" : "Payment saved");
+      cachedCustomers = [];
+      await loadCustomer(currentCustomerId);
+    } catch (error) {
+      toast("Failed to save transaction: " + error.message, true);
     } finally {
-      setLoading(btn, false);
+      setLoading(button, false);
     }
   });
 
   function bootFromHash() {
-    const m = location.hash.match(/^#c\/(.+)$/);
-    if (m) return showDetail(m[1]);
-    const v = location.hash.replace("#", "");
-    if (v === "report" || v === "settings") return setView(v);
+    const match = location.hash.match(/^#c\/(.+)$/);
+    if (match) return showDetail(decodeURIComponent(match[1]));
+    const view = location.hash.replace("#", "");
+    if (view === "report" || view === "settings") return setView(view);
     setView("home");
   }
   window.addEventListener("hashchange", bootFromHash);
+
+  function updateDateLabels() {
+    const now = new Date();
+    setText("pageDate", now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }));
+    if (currentView === "home" && pagePretitle) pagePretitle.textContent = now.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" }).toUpperCase();
+    setText("footerYear", String(now.getFullYear()));
+  }
 
   async function initializeApp() {
     try {
       const sessionResult = await supabase.auth.getSession();
       const session = sessionResult && sessionResult.data && sessionResult.data.session;
-      if (!session) {
-        window.location.href = "./login.html";
-        return;
-      }
+      if (!session) { window.location.href = "./login.html"; return; }
       console.log("Authenticated:", session.user.id);
       initModals();
+      updateDateLabels();
       await applySettings();
       await fetchCustomers();
       bootFromHash();
-    } catch (err) {
-      console.error("App failed to initialize:", err);
+    } catch (error) {
+      console.error("App failed to initialize:", error);
       window.location.href = "./login.html";
     }
   }
