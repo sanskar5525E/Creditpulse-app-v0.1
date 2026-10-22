@@ -4,6 +4,7 @@ from datetime import datetime
 
 from app.database.supabase_client import supabase
 from app.services.customer_service import get_customer_detail
+from app.services.decision_master_ai import analyze_with_make, MakeAnalysisError
 from app.services.customer_service import create_customer as create_customer_service
 from app.services.customer_service import create_transaction as create_transaction_service
 from app.services.customer_service import create_transaction_and_decide
@@ -249,3 +250,84 @@ def clear_all_data(current_user: str = Depends(get_current_user)):
         return {"ok": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear data: {e}")
+
+
+@router.post("/customers/{customer_id}/decision-analysis")
+async def decision_master_analysis(
+    customer_id: int,
+    current_user: str = Depends(get_current_user),
+):
+    """
+    Return the existing deterministic decision plus optional Make AI guidance.
+
+    FastAPI remains responsible for authentication, customer ownership, data
+    access, and risk calculations. Make receives only a small calculated
+    snapshot and cannot read or write Supabase directly.
+    """
+    try:
+        detail = get_customer_detail(customer_id, user_id=current_user)
+    except Exception:
+        logger.exception("Decision Master: failed to load customer %s", customer_id)
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer = detail.get("customer")
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    metrics = detail.get("processed_info") or {}
+    decision = detail.get("decision") or {}
+
+    # Send only fields the current backend schema actually stores.
+    transaction_snapshot = []
+    for transaction in detail.get("transactions") or []:
+        transaction_snapshot.append({
+            key: transaction.get(key)
+            for key in ("type", "amount", "due_date", "paid_date", "created_at")
+            if transaction.get(key) is not None
+        })
+
+    make_payload = {
+        "schema_version": "creditpulse.decision-master.v1",
+        "customer_metrics": {
+            "balance": metrics.get("balance", 0),
+            "overdue_amount": metrics.get("overdue_amount", 0),
+            "days_late": metrics.get("days_late", 0),
+            "risk_score": metrics.get("risk_score", 0),
+            "risk_label": metrics.get("risk_label", "LOW"),
+            "total_credit": metrics.get("total_credit", 0),
+            "total_payment": metrics.get("total_payment", 0),
+        },
+        "limits": {
+            "credit_limit": customer.get("credit_limit", 0),
+            "overdue_day_limit": 45,
+        },
+        "existing_decision": decision,
+        "transaction_history": transaction_snapshot,
+        "instructions": (
+            "Explain the supplied metrics and suggest practical follow-up. "
+            "Do not recalculate or override the existing_decision."
+        ),
+    }
+
+    try:
+        ai_analysis = await analyze_with_make(make_payload)
+        return {
+            "customer_id": customer_id,
+            "analysis_status": "available",
+            "decision": decision,
+            "metrics": metrics,
+            "ai_analysis": ai_analysis,
+        }
+    except MakeAnalysisError:
+        logger.warning(
+            "Decision Master AI unavailable or returned invalid JSON for customer %s",
+            customer_id,
+        )
+        return {
+            "customer_id": customer_id,
+            "analysis_status": "unavailable",
+            "decision": decision,
+            "metrics": metrics,
+            "ai_analysis": None,
+            "message": "AI guidance is temporarily unavailable; the existing decision is still available.",
+        }
