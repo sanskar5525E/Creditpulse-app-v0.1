@@ -213,18 +213,30 @@
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
     <script type="module">
       import { supabase } from './supabase.js';
+
       async function checkAuth() {
         const stored = localStorage.getItem('cp_session');
         if (stored) {
           try {
-            const session = JSON.parse(stored);
-            if (session && session.access_token) await supabase.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
-          } catch (error) { console.warn('Failed to restore stored session', error); }
+            const s = JSON.parse(stored);
+            if (s?.access_token) {
+              await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
+            }
+          } catch (e) {
+            console.warn('Failed to restore stored session', e);
+          }
         }
-        const { data, error } = await supabase.auth.getSession();
-        if (error) { console.error('Auth error:', error); return; }
-        if (!data.session) { window.location.href = './login.html'; return; }
-        console.log('Authenticated:', data.session.user.id);
+
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Auth error:', error);
+          return;
+        }
+        if (!session) {
+          window.location.href = './login.html';
+          return;
+        }
+        console.log('Authenticated:', session.user.id);
       }
       checkAuth();
     </script>
