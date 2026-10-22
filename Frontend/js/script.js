@@ -198,6 +198,7 @@ import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
   function setView(name) {
     const viewName = views[name] ? name : "home";
     currentView = viewName;
+    updateDateLabels();
     currentCustomerId = null;
     activeCustomer = null;
     activeMetrics = null;
@@ -231,8 +232,11 @@ import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
   });
 
   async function doLogout() {
-    try { await supabase.auth.signOut(); }
-    catch (error) { console.warn("Sign out failed", error); }
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn("Sign out failed", e);
+    }
     localStorage.removeItem("cp_session");
     window.location.href = "./login.html";
   }
@@ -696,15 +700,17 @@ import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
     try {
       const sessionResult = await supabase.auth.getSession();
       const session = sessionResult && sessionResult.data && sessionResult.data.session;
-      if (!session) { window.location.href = "./login.html"; return; }
+      if (!session) {
+        window.location.href = "./login.html";
+        return;
+      }
       console.log("Authenticated:", session.user.id);
       initModals();
-      updateDateLabels();
       await applySettings();
       await fetchCustomers();
       bootFromHash();
-    } catch (error) {
-      console.error("App failed to initialize:", error);
+    } catch (err) {
+      console.error("App failed to initialize:", err);
       window.location.href = "./login.html";
     }
   }
