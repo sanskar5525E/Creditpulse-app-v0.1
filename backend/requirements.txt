@@ -4,3 +4,4 @@ pydantic
 python-dateutil 
 supabase 
 python-dotenv
+httpx
