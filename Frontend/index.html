@@ -4,481 +4,230 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>CreditPulse — Digital Notebook for Wholesalers</title>
-    <meta name="description" content="Digital notebook for wholesaler — track customer credit, payments, and overdue balances." />
-    <meta name="theme-color" content="#066fd1" />
+    <meta name="description" content="A digital notebook for wholesalers to track customer credit, payments, and overdue balances." />
+    <meta name="theme-color" content="#f4f6fb" />
     <link rel="manifest" href="manifest.webmanifest" />
-
-    <!-- Tabler CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler-vendors.min.css" />
-    <!-- Tabler Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
-
-    <!-- Small overrides for CreditPulse -->
     <link rel="stylesheet" href="./css/style.css" />
   </head>
-
-  <body>
-    <div class="page">
-      <!-- SIDEBAR -->
-      <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
-        <div class="container-fluid">
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+  <body class="creditpulse-app" data-bs-theme="light">
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" id="brandLink" aria-label="CreditPulse home">
+          <span class="brand-mark"><i class="ti ti-wave-sine" aria-hidden="true"></i></span>
+          <span class="brand-copy"><strong id="heroTitle">CreditPulse</strong><small>Digital notebook for wholesalers</small></span>
+        </a>
+        <div class="topbar-actions">
+          <time class="topbar-date" id="pageDate"></time>
+          <button class="button button-primary add-customer-desktop" id="addCustomerBtn" type="button">
+            <i class="ti ti-plus" aria-hidden="true"></i><span>Add Customer</span>
           </button>
+          <button class="icon-button add-customer-mobile" id="addCustomerBtnMobile" type="button" aria-label="Add customer">
+            <i class="ti ti-plus" aria-hidden="true"></i>
+          </button>
+          <span class="profile-chip" aria-hidden="true"><i class="ti ti-user" aria-hidden="true"></i></span>
+        </div>
+      </header>
 
-          <h1 class="navbar-brand navbar-brand-autodark">
-            <a href="#" id="brandLink">
-              <span class="navbar-brand-text">CreditPulse</span>
+      <nav class="navbar navbar-vertical" aria-label="Primary navigation">
+        <div class="container-fluid">
+          <div class="navbar-nav" id="sidebar-menu">
+            <a class="nav-link active" href="#home" data-view="home" id="navHome">
+              <i class="ti ti-users" aria-hidden="true"></i><span>Customers</span>
             </a>
-          </h1>
-
-          <div class="navbar-nav flex-row d-lg-none">
-            <div class="nav-item dropdown">
-              <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
-                <span class="avatar avatar-sm" style="background-image: url(https://api.dicebear.com/7.x/initials/svg?seed=CP)"></span>
-              </a>
-              <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <a class="dropdown-item" href="#" id="logoutBtnMobile">Logout</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="collapse navbar-collapse" id="sidebar-menu">
-            <ul class="navbar-nav pt-lg-3">
-              <li class="nav-item">
-                <a class="nav-link active" href="#home" data-view="home" id="navHome">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-home"></i>
-                  </span>
-                  <span class="nav-link-title">Customers</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#report" data-view="report" id="navReport">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-chart-bar"></i>
-                  </span>
-                  <span class="nav-link-title">Reports</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#settings" data-view="settings" id="navSettings">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-settings"></i>
-                  </span>
-                  <span class="nav-link-title">Settings</span>
-                </a>
-              </li>
-            </ul>
+            <a class="nav-link" href="#report" data-view="report" id="navReport">
+              <i class="ti ti-chart-bar" aria-hidden="true"></i><span>Reports</span>
+            </a>
+            <a class="nav-link" href="#settings" data-view="settings" id="navSettings">
+              <i class="ti ti-adjustments-horizontal" aria-hidden="true"></i><span>Settings</span>
+            </a>
           </div>
         </div>
-      </aside>
+      </nav>
 
-      <!-- PAGE WRAPPER -->
-      <div class="page-wrapper">
-        <!-- TOP HEADER -->
-        <div class="page-header d-print-none">
-          <div class="container-xl">
-            <div class="row g-2 align-items-center">
-              <div class="col">
-                <div class="page-pretitle" id="pagePretitle">Overview</div>
-                <h2 class="page-title" id="title">Customers</h2>
-              </div>
-              <div class="col-auto ms-auto d-print-none">
-                <div class="btn-list">
-                  <button class="btn btn-primary d-none d-sm-inline-block" id="addCustomerBtn">
-                    <i class="ti ti-plus me-1"></i>
-                    Add Customer
-                  </button>
-                  <button class="btn btn-primary d-sm-none" id="addCustomerBtnMobile">
-                    <i class="ti ti-plus"></i>
-                  </button>
-                  <button class="btn btn-outline-secondary" id="logoutBtn">
-                    <i class="ti ti-logout me-1"></i>
-                    Logout
-                  </button>
-                </div>
-              </div>
-            </div>
+      <main class="page-wrapper">
+        <div class="page-header">
+          <div>
+            <div class="page-pretitle" id="pagePretitle">Your customer ledger</div>
+            <h1 class="page-title" id="title">Customers</h1>
           </div>
         </div>
-
-        <!-- PAGE BODY -->
         <div class="page-body">
           <div class="container-xl" id="app">
-
-            <!-- ==================== HOME / CUSTOMERS VIEW ==================== -->
-            <section id="homeView">
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="me-3">
-                          <span class="avatar avatar-lg bg-primary-lt">
-                            <i class="ti ti-users" style="font-size: 1.5rem;"></i>
-                          </span>
-                        </div>
-                        <div>
-                          <div class="h3 mb-0" id="heroTitle">CreditPulse</div>
-                          <div class="text-secondary">Digital notebook for wholesalers</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            <section id="homeView" class="view-section">
+              <div class="overview-card card-surface">
+                <div class="overview-main">
+                  <span class="eyebrow">Total outstanding</span>
+                  <strong id="homeTotalOutstanding">₹0</strong>
+                </div>
+                <div class="overview-footer">
+                  <div><span>Overdue balance</span><strong id="homeOverdueBalance">₹0</strong></div>
+                  <div class="overview-attention"><span>Needs attention</span><strong id="homeAttentionCount">0 customers</strong></div>
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Customers</h3>
-                  <div class="card-actions">
-                    <div class="input-icon">
-                      <input type="search" id="searchInput" class="form-control" placeholder="Search customers…" />
-                      <span class="input-icon-addon">
-                        <i class="ti ti-search"></i>
-                      </span>
-                    </div>
-                  </div>
+              <button class="top-risk-card card-surface" id="topRiskButton" type="button" hidden>
+                <div class="top-risk-heading">
+                  <span><i class="ti ti-phone-call" aria-hidden="true"></i> Top customer to follow up</span>
+                  <span class="risk-pill" id="topRiskBadge">High risk</span>
                 </div>
-                <div class="table-responsive">
-                  <table class="table table-vcenter card-table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Customer</th>
-                        <th>Phone</th>
-                        <th>Outstanding</th>
-                        <th>Risk</th>
-                        <th>Status</th>
-                        <th class="w-1"></th>
-                      </tr>
-                    </thead>
-                    <tbody id="customerList">
-                      <!-- filled by JS -->
-                    </tbody>
-                  </table>
+                <div class="top-risk-content">
+                  <span class="avatar-initials" id="topRiskInitials">CP</span>
+                  <div class="top-risk-identity"><strong id="topRiskName">Customer</strong><span id="topRiskPhone">—</span></div>
+                  <i class="ti ti-chevron-right top-risk-chevron" aria-hidden="true"></i>
                 </div>
-                <div class="card-body text-center text-secondary py-5" id="emptyList" hidden>
-                  <div class="mb-3">
-                    <i class="ti ti-users-off" style="font-size: 3rem; opacity: 0.4;"></i>
-                  </div>
-                  <p class="mb-0">No customers yet. Click <strong>Add Customer</strong> to get started.</p>
+                <div class="top-risk-metrics">
+                  <div><span>Outstanding</span><strong id="topRiskOutstanding">₹0</strong></div>
+                  <div class="top-risk-score"><span>Risk score</span><strong id="topRiskScore">0/100</strong></div>
                 </div>
+                <div class="top-risk-note" id="topRiskRecommendation">Review this customer before extending more credit.</div>
+              </button>
+
+              <div class="customer-toolbar">
+                <label class="search-field" for="searchInput">
+                  <i class="ti ti-search" aria-hidden="true"></i>
+                  <input type="search" id="searchInput" placeholder="Search customers…" autocomplete="off" />
+                </label>
+                <div class="filter-chips" role="group" aria-label="Filter customers">
+                  <button class="filter-chip active" type="button" data-customer-filter="all">All customers <span id="filterAllCount">0</span></button>
+                  <button class="filter-chip" type="button" data-customer-filter="attention">Needs follow-up <span id="filterAttentionCount">0</span></button>
+                </div>
+              </div>
+
+              <div class="customer-list" id="customerList" aria-live="polite"></div>
+              <div class="empty-state card-surface" id="emptyList" hidden>
+                <span class="empty-icon"><i class="ti ti-users" aria-hidden="true"></i></span>
+                <h2 id="emptyListTitle">No customers yet</h2>
+                <p id="emptyListMessage">Add a customer to start a credit ledger.</p>
+                <button class="button button-primary" id="emptyAddCustomer" type="button" data-open-customer>Add your first customer</button>
               </div>
             </section>
 
-            <!-- ==================== REPORT VIEW ==================== -->
-            <section id="reportView" hidden>
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Total Credit Given</div>
-                      </div>
-                      <div class="h1 mb-0" id="rTotalCredit">₹0</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Total Paid</div>
-                      </div>
-                      <div class="h1 mb-0 text-success" id="rTotalPaid">₹0</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Outstanding</div>
-                      </div>
-                      <div class="h1 mb-0 text-danger" id="rOutstanding">₹0</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Overdue</div>
-                      </div>
-                      <div class="h1 mb-0 text-danger" id="rOverdue">₹0</div>
-                    </div>
-                  </div>
-                </div>
+            <section id="reportView" class="view-section" hidden>
+              <div class="section-intro">
+                <div><h2>Reports</h2><p>A clear view of your credit and collections.</p></div>
+                <div class="report-date"><span><i class="ti ti-calendar" aria-hidden="true"></i> All time</span><small id="reportAsOf">As of today</small></div>
               </div>
-
-              <div class="row row-deck row-cards">
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-header">
-                      <h3 class="card-title">Risky Customers</h3>
-                      <div class="card-actions">
-                        <span class="badge bg-azure-lt" id="rCustomers">0 customers</span>
-                      </div>
-                    </div>
-                    <div class="table-responsive">
-                      <table class="table table-vcenter card-table table-hover">
-                        <thead>
-                          <tr>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Outstanding</th>
-                            <th>Risk Score</th>
-                            <th>Labels</th>
-                          </tr>
-                        </thead>
-                        <tbody id="riskyList">
-                          <!-- filled by JS -->
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class="card-body text-center text-secondary py-5" id="emptyRisky" hidden>
-                      <div class="mb-3">
-                        <i class="ti ti-mood-check" style="font-size: 3rem; opacity: 0.4;"></i>
-                      </div>
-                      <p class="mb-0">No risky customers — nice work!</p>
-                    </div>
-                  </div>
-                </div>
+              <div class="report-metrics">
+                <article class="metric-card card-surface"><span class="metric-icon blue"><i class="ti ti-arrow-up-right" aria-hidden="true"></i></span><span class="eyebrow">Total credit given</span><strong id="rTotalCredit">₹0</strong></article>
+                <article class="metric-card card-surface"><span class="metric-icon green"><i class="ti ti-arrow-down-left" aria-hidden="true"></i></span><span class="eyebrow">Total paid</span><strong class="value-positive" id="rTotalPaid">₹0</strong></article>
+                <article class="metric-card card-surface"><span class="metric-icon blue"><i class="ti ti-wallet" aria-hidden="true"></i></span><span class="eyebrow">Outstanding</span><strong id="rOutstanding">₹0</strong></article>
+                <article class="metric-card card-surface metric-overdue"><span class="metric-icon amber"><i class="ti ti-clock" aria-hidden="true"></i></span><span class="eyebrow">Overdue</span><strong id="rOverdue">₹0</strong></article>
               </div>
+              <section class="collection-card card-surface" aria-labelledby="collectionTitle">
+                <div class="collection-heading"><div><h3 id="collectionTitle">Collection overview</h3><p id="collectionSubtitle">Paid compared with total credit given.</p></div><strong id="collectionPercent">0%</strong></div>
+                <div class="collection-bar" role="img" aria-label="Paid, not yet due, and overdue balances">
+                  <span class="collection-segment paid" id="collectionPaidBar"></span>
+                  <span class="collection-segment not-due" id="collectionNotDueBar"></span>
+                  <span class="collection-segment overdue" id="collectionOverdueBar"></span>
+                </div>
+                <div class="collection-legend"><span><i class="legend-dot paid"></i>Paid <strong id="collectionPaid">₹0</strong></span><span><i class="legend-dot not-due"></i>Not yet due <strong id="collectionNotDue">₹0</strong></span><span><i class="legend-dot overdue"></i>Overdue <strong id="collectionOverdue">₹0</strong></span></div>
+              </section>
+              <section class="report-risk-section">
+                <div class="section-title-row"><div><h3>Customers to follow up</h3><p>Prioritized by the existing risk score.</p></div><span class="count-pill" id="rCustomers">0 customers</span></div>
+                <div class="risk-customer-list" id="riskyList"></div>
+                <div class="empty-state compact card-surface" id="emptyRisky" hidden><i class="ti ti-mood-check" aria-hidden="true"></i><p>No customers currently need follow-up.</p></div>
+              </section>
             </section>
 
-            <!-- ==================== DETAIL VIEW ==================== -->
-            <section id="detailView" hidden>
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-12">
-                  <div class="card" id="customerCard">
-                    <!-- filled by JS -->
-                  </div>
-                </div>
+            <section id="detailView" class="view-section" hidden>
+              <button class="back-link" id="detailBackBtn" type="button"><i class="ti ti-arrow-left" aria-hidden="true"></i><span>Customer detail</span></button>
+              <div class="detail-subtitle">CreditPulse · Customer ledger</div>
+              <div class="customer-detail-card card-surface" id="customerCard"></div>
+              <div class="detail-actions">
+                <button class="button button-primary" id="addCreditBtn" type="button"><i class="ti ti-arrow-up-right" aria-hidden="true"></i>Credit Given</button>
+                <button class="button button-success" id="addPaymentBtn" type="button"><i class="ti ti-arrow-down-left" aria-hidden="true"></i>Payment Received</button>
               </div>
-
-              <!-- Risk Analysis Panel -->
-              <div class="card mb-3" id="analysisPanel" hidden>
-                <div class="card-header">
-                  <h3 class="card-title">
-                    <i class="ti ti-shield-check me-2"></i>
-                    Risk Analysis
-                  </h3>
-                </div>
-                <div class="card-body">
-                  <div class="recommendation mb-3" id="analysisRecommendation"></div>
-                  <div class="btn-list" id="analysisActions"></div>
-                </div>
-              </div>
-
-              <!-- Action buttons -->
-              <div class="row mb-3">
-                <div class="col-6">
-                  <button class="btn btn-orange w-100" id="addCreditBtn">
-                    <i class="ti ti-plus me-1"></i>
-                    Credit Given
-                  </button>
-                </div>
-                <div class="col-6">
-                  <button class="btn btn-success w-100" id="addPaymentBtn">
-                    <i class="ti ti-check me-1"></i>
-                    Payment Received
-                  </button>
-                </div>
-              </div>
-
-              <!-- Transaction History -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Transaction History</h3>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-vcenter card-table">
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th class="text-end">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody id="txnList">
-                      <!-- filled by JS -->
-                    </tbody>
-                  </table>
-                </div>
-                <div class="card-body text-center text-secondary py-4" id="emptyTxn" hidden>
-                  No transactions yet.
-                </div>
-              </div>
+              <section class="analysis-card card-surface" id="analysisPanel" hidden>
+                <div class="analysis-header"><div><span class="eyebrow">Risk Analysis</span><h3>Make the next decision with context</h3></div><span class="risk-pill" id="analysisRiskBadge">Low risk</span></div>
+                <p class="analysis-recommendation" id="analysisRecommendation"></p>
+                <div class="analysis-actions" id="analysisActions"></div>
+                <button class="button button-outline decision-button" id="decisionMasterBtn" type="button"><i class="ti ti-sparkles" aria-hidden="true"></i>Decision Master</button>
+              </section>
+              <section class="transaction-section">
+                <div class="section-title-row"><div><h3>Transaction history</h3><p>Every credit and payment in this ledger.</p></div><span class="count-pill" id="detailTxnCount">0 entries</span></div>
+                <div class="transaction-totals card-surface"><div><span>Total credit</span><strong id="detailTotalCredit">₹0</strong></div><div><span>Total paid</span><strong class="value-positive" id="detailTotalPaid">₹0</strong></div></div>
+                <div class="transaction-list card-surface" id="txnList"></div>
+                <div class="empty-state compact card-surface" id="emptyTxn" hidden><i class="ti ti-receipt" aria-hidden="true"></i><p>No transactions yet.</p></div>
+              </section>
             </section>
 
-            <!-- ==================== SETTINGS VIEW ==================== -->
-            <section id="settingsView" hidden>
-              <div class="row">
-                <div class="col-12 col-md-8 col-lg-6">
-                  <form id="settingsForm" class="card">
-                    <div class="card-header">
-                      <h3 class="card-title">App Settings</h3>
-                    </div>
-                    <div class="card-body">
-                      <div class="mb-3">
-                        <label class="form-label">App name</label>
-                        <input type="text" class="form-control" name="appName" required />
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Default credit limit (₹)</label>
-                        <input type="number" class="form-control" name="defaultCreditLimit" min="0" step="1" />
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Theme</label>
-                        <select class="form-select" name="theme">
-                          <option value="dark">Dark</option>
-                          <option value="light">Light</option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <div class="form-label">Version</div>
-                        <div class="form-control-plaintext" id="versionLabel">1.0.0</div>
-                      </div>
-                    </div>
-                    <div class="card-footer text-end">
-                      <button type="button" class="btn btn-outline-danger me-2" id="clearDataBtn">
-                        Clear all data
-                      </button>
-                      <button type="submit" class="btn btn-primary">Save settings</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+            <section id="settingsView" class="view-section" hidden>
+              <div class="section-intro"><div><h2>App Settings</h2><p>Make your notebook work for you.</p></div></div>
+              <form id="settingsForm" class="settings-card card-surface">
+                <div class="settings-card-title"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i><h3>Notebook preferences</h3></div>
+                <label class="form-field"><span>App name</span><input type="text" name="appName" required maxlength="48" /></label>
+                <label class="form-field"><span>Default credit limit (₹)</span><input type="number" name="defaultCreditLimit" min="0" step="1" /><small>Applied to new customers. You can change it for each customer.</small></label>
+                <label class="form-field"><span>Theme</span><select name="theme"><option value="light">Light</option><option value="dark">Dark</option></select></label>
+                <div class="settings-version"><span>Version</span><strong id="versionLabel">1.0.0</strong></div>
+                <button class="button button-primary settings-save" type="submit">Save settings</button>
+              </form>
+              <section class="settings-card card-surface about-card"><div class="settings-card-title"><i class="ti ti-notes" aria-hidden="true"></i><h3>About CreditPulse</h3></div><p>Digital notebook for wholesalers. Track customer credit, payments, overdue balances, and make informed decisions in one place.</p></section>
+              <section class="settings-card card-surface danger-card"><div class="settings-card-title"><i class="ti ti-alert-triangle" aria-hidden="true"></i><h3>Data management</h3></div><p>Clear all customers and transactions from this notebook. This action cannot be undone.</p><button class="button button-danger-outline" id="clearDataBtn" type="button"><i class="ti ti-trash" aria-hidden="true"></i>Clear all data</button></section>
+              <button class="logout-link" id="logoutBtn" type="button"><i class="ti ti-logout" aria-hidden="true"></i>Logout</button>
             </section>
-
           </div>
         </div>
-
-        <footer class="footer footer-transparent d-print-none">
-          <div class="container-xl">
-            <div class="row text-center align-items-center">
-              <div class="col-12">
-                <ul class="list-inline list-inline-dots mb-0">
-                  <li class="list-inline-item">
-                    CreditPulse &copy; 2026
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
+        <footer class="app-footer"><span>CreditPulse · <span id="footerYear">2026</span></span><span>Customer credit, clearly recorded.</span></footer>
+      </main>
     </div>
 
-    <!-- ==================== MODALS ==================== -->
+    <section class="workflow-screen" id="customerDialog" aria-labelledby="customerWorkflowTitle" hidden>
+      <header class="workflow-header"><button class="icon-button workflow-back" type="button" data-workflow-close="customer" aria-label="Go back"><i class="ti ti-arrow-left" aria-hidden="true"></i></button><div><h2 id="customerWorkflowTitle">New Customer</h2><p>CreditPulse · Customer ledger</p></div></header>
+      <div class="workflow-scroll"><div class="workflow-content"><div class="workflow-intro"><span class="workflow-icon"><i class="ti ti-user-plus" aria-hidden="true"></i></span><h3>Start a customer ledger</h3><p>Add their contact details and set how much credit you’re comfortable extending.</p></div>
+        <form id="customerForm" class="workflow-form">
+          <section class="card-surface form-card"><h3>Customer details</h3>
+            <label class="form-field"><span>Name</span><input type="text" name="name" required maxlength="120" autocomplete="name" placeholder="Customer or business name" /></label>
+            <label class="form-field"><span>Phone</span><input type="tel" name="phone" required maxlength="24" inputmode="tel" autocomplete="tel" placeholder="+91 98765 43210" /><small>Use a 10-digit mobile number with country code.</small></label>
+            <label class="form-field"><span>Credit limit (₹)</span><input type="number" name="credit_limit" min="0" step="1" value="5000" required /><small>The default is <span id="newCustomerDefaultLimit">₹5,000</span>. Set a lower limit for a new customer.</small></label>
+          </section>
+          <div class="info-callout"><i class="ti ti-info-circle" aria-hidden="true"></i><div><strong>A fresh start, with clear limits</strong><p>Your customer’s balance starts at ₹0. Add a Credit Given entry when you make the first sale.</p></div></div>
+          <section class="ledger-preview card-surface"><h3>Opening ledger</h3><div><span>Outstanding</span><strong>₹0</strong></div><div><span>Available credit</span><strong class="value-blue" id="newCustomerAvailable">₹5,000</strong></div></section>
+          <div class="workflow-actions"><button class="button button-secondary" type="button" data-workflow-close="customer">Cancel</button><button class="button button-primary" type="submit">Save</button></div>
+          <p class="workflow-footnote">Customer will be added when you save.</p>
+        </form>
+      </div></div>
+    </section>
 
-    <!-- Customer Modal -->
-    <div class="modal modal-blur fade" id="customerDialog" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <form id="customerForm">
-            <div class="modal-header">
-              <h5 class="modal-title">New Customer</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" name="name" required autocomplete="off" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" name="phone" required inputmode="numeric" autocomplete="off" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Credit limit (₹)</label>
-                <input type="number" class="form-control" name="credit_limit" min="0" step="1" value="0" />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary ms-auto">Save</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+    <section class="workflow-screen" id="txnDialog" aria-labelledby="txnTitle" hidden>
+      <header class="workflow-header"><button class="icon-button workflow-back" type="button" data-workflow-close="transaction" aria-label="Go back"><i class="ti ti-arrow-left" aria-hidden="true"></i></button><div><h2 id="txnTitle">Credit Given</h2><p>CreditPulse · Customer ledger</p></div></header>
+      <div class="workflow-scroll"><div class="workflow-content">
+        <div class="workflow-intro compact-intro"><h3 id="txnHeadline">Record a credit sale</h3><p id="txnDescription">Add the amount owed and agree on a due date.</p></div>
+        <section class="selected-customer card-surface"><div class="selected-customer-main"><span class="avatar-initials" id="txnCustomerInitials">CP</span><div><strong id="txnCustomerName">Customer</strong><span id="txnCustomerPhone">—</span></div><i class="ti ti-chevron-down" aria-hidden="true"></i></div><div class="selected-customer-stats"><div><span>Current outstanding</span><strong id="txnCurrentOutstanding">₹0</strong></div><div><span id="txnBalanceLabel">Available credit</span><strong class="value-blue" id="txnCreditRemaining">₹0</strong></div></div></section>
+        <form id="txnForm" class="workflow-form transaction-form">
+          <input type="hidden" name="type" />
+          <label class="form-field amount-field"><span>Amount (₹)</span><div class="amount-input-wrap"><span aria-hidden="true">₹</span><input type="number" id="txnAmountInput" name="amount" min="1" step="1" required inputmode="decimal" placeholder="0" /></div><small id="txnAmountHelp">This amount will be added to the customer’s balance.</small></label>
+          <label class="form-field" id="dueDateLabel"><span>Due date</span><input type="date" id="txnDueDateInput" name="due_date" required /><small id="dueDateHelp">Set the date payment is due.</small></label>
+          <label class="form-field" id="paidDateLabel" hidden><span>Paid on</span><input type="date" id="txnPaidDateInput" name="paid_date" required /><small>Today · The date the payment was received.</small></label>
+          <div class="risk-callout" id="txnRiskCallout" hidden><i class="ti ti-alert-triangle" aria-hidden="true"></i><div><strong id="txnRiskTitle">High-risk customer</strong><p id="txnRiskMessage"></p></div></div>
+          <div class="success-callout" id="txnSuccessCallout" hidden><i class="ti ti-circle-check" aria-hidden="true"></i><div><strong>Every payment brings the balance down</strong><p>This payment reduces outstanding credit. Check the amount and date before you save.</p></div></div>
+          <section class="after-saving-card card-surface"><div class="after-saving-title"><h3>After saving</h3><span class="status-pill" id="txnPreviewStatus">Preview</span></div><div><span>Current outstanding</span><strong id="txnPreviewCurrent">₹0</strong></div><div><span id="txnPreviewActionLabel">New credit</span><strong id="txnPreviewChange">+ ₹0</strong></div><div><span>New outstanding</span><strong id="txnPreviewOutstanding">₹0</strong></div><div><span>Remaining credit limit</span><strong class="value-blue" id="txnPreviewRemaining">₹0</strong></div><div class="preview-overdue-row"><span>Remaining overdue</span><strong class="value-amber" id="txnPreviewOverdue">₹0</strong></div><small class="preview-note" id="txnPreviewNote">Preview based on the current ledger; final values update after saving.</small></section>
+          <div class="workflow-actions"><button class="button button-secondary" type="button" data-workflow-close="transaction">Cancel</button><button class="button button-primary" id="txnSubmitBtn" type="submit">Save</button></div>
+          <p class="workflow-footnote" id="txnFootnote"><i class="ti ti-pencil" aria-hidden="true"></i>Added to Transaction History when saved.</p>
+        </form>
+      </div></div>
+    </section>
 
-    <!-- Transaction Modal -->
-    <div class="modal modal-blur fade" id="txnDialog" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <form id="txnForm">
-            <div class="modal-header">
-              <h5 class="modal-title" id="txnTitle">Add Transaction</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <input type="hidden" name="type" />
-              <div class="mb-3">
-                <label class="form-label">Amount (₹)</label>
-                <input type="number" class="form-control" name="amount" min="1" step="1" required />
-              </div>
-              <div class="mb-3" id="dueDateLabel">
-                <label class="form-label">Due date</label>
-                <input type="date" class="form-control" name="due_date" />
-              </div>
-              <div class="mb-3" id="paidDateLabel" hidden>
-                <label class="form-label">Paid on</label>
-                <input type="date" class="form-control" name="paid_date" />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary ms-auto">Save</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    <!-- Toast -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-      <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" hidden>
-        <div class="toast-body" id="toastBody"></div>
-      </div>
-    </div>
-
-    <!-- Tabler JS -->
+    <div class="toast-container" aria-live="polite" aria-atomic="true"><div id="toast" class="toast" role="status" hidden><div class="toast-body" id="toastBody"></div></div></div>
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/js/tabler.min.js"></script>
-<script type="module">
+    <script type="module">
       import { supabase } from './supabase.js';
-
       async function checkAuth() {
         const stored = localStorage.getItem('cp_session');
         if (stored) {
           try {
-            const s = JSON.parse(stored);
-            if (s?.access_token) {
-              await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
-            }
-          } catch (e) {
-            console.warn('Failed to restore stored session', e);
-          }
+            const session = JSON.parse(stored);
+            if (session && session.access_token) await supabase.auth.setSession({ access_token: session.access_token, refresh_token: session.refresh_token });
+          } catch (error) { console.warn('Failed to restore stored session', error); }
         }
-
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Auth error:', error);
-          return;
-        }
-        if (!session) {
-          window.location.href = './login.html';
-          return;
-        }
-        console.log('Authenticated:', session.user.id);
+        const { data, error } = await supabase.auth.getSession();
+        if (error) { console.error('Auth error:', error); return; }
+        if (!data.session) { window.location.href = './login.html'; return; }
+        console.log('Authenticated:', data.session.user.id);
       }
       checkAuth();
     </script>
-
     <script type="module" src="./js/api.js"></script>
     <script type="module" src="./js/script.js"></script>
   </body>
