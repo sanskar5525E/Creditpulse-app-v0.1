@@ -564,7 +564,7 @@ import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
     const rows = Array.isArray(transactions) ? transactions : [];
     setText("detailTxnCount", rows.length + (rows.length === 1 ? " entry" : " entries"));
     if (emptyTxn) emptyTxn.hidden = rows.length > 0;
-    if (rows.length) txnList.hidden = false;
+    txnList.hidden = rows.length === 0;
     rows.forEach((transaction) => {
       const isCredit = transaction.type === "credit";
       const item = document.createElement("article");
@@ -687,7 +687,13 @@ import { buildCustomerMetrics, getRiskLabel } from "./logic.js";
     if (view === "report" || view === "settings") return setView(view);
     setView("home");
   }
-  window.addEventListener("hashchange", bootFromHash);
+  window.addEventListener("hashchange", () => {
+    const match = location.hash.match(/^#c\/(.+)$/);
+    if (match && currentView === "detail" && location.hash === "#c/" + encodeURIComponent(String(currentCustomerId))) return;
+    const expectedHash = currentView === "home" ? "" : "#" + currentView;
+    if (!match && currentView !== "detail" && location.hash === expectedHash) return;
+    bootFromHash();
+  });
 
   function updateDateLabels() {
     const now = new Date();
