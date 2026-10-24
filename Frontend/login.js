@@ -27,11 +27,7 @@ togglePasswordBtn?.addEventListener('click', (e) => {
   passwordInput.type = isHidden ? 'text' : 'password';
   togglePasswordBtn.setAttribute('title', isHidden ? 'Hide password' : 'Show password');
 
-  if (isHidden) {
-    eyeIcon.className = 'ti ti-eye-off';
-  } else {
-    eyeIcon.className = 'ti ti-eye';
-  }
+  togglePasswordBtn.textContent = isHidden ? 'Hide' : 'Show';
 });
 
 async function handleSignIn(email, password) {
