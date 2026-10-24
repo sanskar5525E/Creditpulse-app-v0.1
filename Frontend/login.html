@@ -4,84 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CreditPulse — Login</title>
-    <meta name="theme-color" content="#066fd1" />
-
-    <!-- Tabler CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta20/dist/css/tabler.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <meta name="theme-color" content="#0e1525" />
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
-
-  <body class="d-flex flex-column" data-bs-theme="dark">
-    <div class="page page-center">
-      <div class="container container-tight py-4">
-        <div class="text-center mb-4">
-          <a href="." class="navbar-brand navbar-brand-autodark">
-            <span class="avatar avatar-lg bg-primary text-white me-2" style="font-size: 1.5rem;">
-              <i class="ti ti-wallet"></i>
-            </span>
-            <span class="fs-2 fw-bold">CreditPulse</span>
-          </a>
+  <body>
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="brand">
+          <div class="brand-mark">₹</div>
+          <h1>CreditPulse</h1>
         </div>
-
-        <div class="card card-md">
-          <div class="card-body">
-            <h2 class="h2 text-center mb-4">Sign in to your account</h2>
-
-            <div class="alert alert-danger" id="errorBox" role="alert" style="display: none;"></div>
-
-            <form id="loginForm" autocomplete="off" novalidate>
-              <div class="mb-3">
-                <label class="form-label" for="email">Email address</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  class="form-control"
-                  placeholder="you@company.com"
-                  required
-                  autocomplete="email"
-                />
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label" for="password">
-                  Password
-                </label>
-                <div class="input-group input-group-flat">
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Your password"
-                    required
-                    autocomplete="current-password"
-                  />
-                  <span class="input-group-text">
-                    <a href="#" class="link-secondary" id="togglePassword" title="Show password" data-bs-toggle="tooltip">
-                      <i class="ti ti-eye" id="eyeIcon"></i>
-                    </a>
-                  </span>
-                </div>
-              </div>
-
-              <div class="form-footer">
-                <button type="submit" class="btn btn-primary w-100" id="submitBtn">
-                  Sign In
-                </button>
-              </div>
-            </form>
+        <p class="sub">Sign in to your account</p>
+        <div class="error" id="errorBox"></div>
+        <form id="loginForm" autocomplete="off" novalidate>
+          <div class="field">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@company.com" required autocomplete="email" />
           </div>
-        </div>
-
-        <div class="text-center text-secondary mt-3">
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="password-field">
+              <input type="password" id="password" name="password" placeholder="Your password" required autocomplete="current-password" />
+              <button type="button" class="toggle-password" id="togglePassword" title="Show password">Show</button>
+            </div>
+          </div>
+          <button type="submit" id="submitBtn">Sign in</button>
+        </form>
+        <div class="signup-row">
           New here?
-          <button type="button" class="btn btn-link p-0 ms-1" id="signUpBtn">
-            Create an account
-          </button>
+          <button type="button" id="signUpBtn">Create an account</button>
         </div>
       </div>
     </div>
-<script type="module" src="./login.js"></script>
+    <span id="eyeIcon" hidden></span>
+    <script type="module" src="./login.js"></script>
   </body>
 </html>
