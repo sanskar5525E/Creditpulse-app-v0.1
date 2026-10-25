@@ -1,0 +1,41 @@
+/* Custom Dashboard Cards */
+.customer-card {
+  transition: all 0.2s ease;
+  border: 1px solid var(--tblr-border-color);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.customer-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.avatar.rounded-circle {
+  border-radius: 50% !important;
+}
+
+/* Custom Pills for Filters */
+.nav-pills .nav-link.active {
+  background-color: #066fd1; /* Tabler primary */
+  color: white;
+}
+
+.nav-pills .nav-link.bg-warning-lt {
+  background-color: #fff3cd !important;
+  color: #b7791f !important;
+}
+.nav-pills .nav-link.bg-warning-lt:hover {
+  background-color: #ffe69c !important;
+}
+
+/* Soft Badge backgrounds */
+.bg-danger-lt {
+  background-color: #fee2e2 !important;
+  color: #ef4444 !important;
+  padding: 4px 8px;
+}
+
+.bg-azure-lt {
+  background-color: #e0f2fe !important;
+  color: #0284c7 !important;
+}
