@@ -1,448 +1,437 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="app">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>CreditPulse — Digital Notebook for Wholesalers</title>
-    <meta name="description" content="Digital notebook for wholesaler — track customer credit, payments, and overdue balances." />
-    <meta name="theme-color" content="#066fd1" />
+    <title>CreditSaver — Digital notebook for wholesalers</title>
+    <meta name="description" content="Digital notebook for wholesalers — track customer credit, payments, and overdue balances." />
+    <meta name="theme-color" content="#2563eb" />
     <link rel="manifest" href="manifest.webmanifest" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-    <!-- App styles -->
     <link rel="stylesheet" href="./css/style.css" />
   </head>
 
-  <body>
-    <div class="page">
-      <!-- SIDEBAR -->
-      <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
-        <div class="container-fluid">
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu" aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
+  <body class="app">
+    <!-- ============ TOP HEADER ============ -->
+    <header class="topbar">
+      <a href="#" class="brand-link" id="brandLink">
+        <span class="brand-logo">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        </span>
+        <span class="brand-text">
+          <span class="brand-name" id="brandName">CreditSaver</span>
+          <span class="brand-tag">Digital notebook for wholesalers</span>
+        </span>
+      </a>
 
-          <h1 class="navbar-brand navbar-brand-autodark">
-            <a href="#" id="brandLink">
-              <span class="navbar-brand-text">CreditPulse</span>
-            </a>
-          </h1>
-
-          <div class="navbar-nav flex-row d-lg-none">
-            <div class="nav-item dropdown">
-              <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
-                <span class="avatar avatar-sm" style="background-image: url(https://api.dicebear.com/7.x/initials/svg?seed=CP)"></span>
-              </a>
-              <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <a class="dropdown-item" href="#" id="logoutBtnMobile">Logout</a>
-              </div>
-            </div>
-          </div>
-
-          <div class="collapse navbar-collapse" id="sidebar-menu">
-            <ul class="navbar-nav pt-lg-3">
-              <li class="nav-item">
-                <a class="nav-link active" href="#home" data-view="home" id="navHome">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-home"></i>
-                  </span>
-                  <span class="nav-link-title">Customers</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#report" data-view="report" id="navReport">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-chart-bar"></i>
-                  </span>
-                  <span class="nav-link-title">Reports</span>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#settings" data-view="settings" id="navSettings">
-                  <span class="nav-link-icon d-md-none d-lg-inline-block">
-                    <i class="ti ti-settings"></i>
-                  </span>
-                  <span class="nav-link-title">Settings</span>
-                </a>
-              </li>
-            </ul>
+      <div class="topbar-right">
+        <label class="search" for="searchInput">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" id="searchInput" placeholder="Search customers..." autocomplete="off" />
+        </label>
+        <div class="user-wrap">
+          <button class="user-avatar" id="userAvatar" type="button" aria-label="Account menu">AK</button>
+          <div class="user-menu" id="userMenu" hidden>
+            <button type="button" id="logoutBtn">Log out</button>
           </div>
         </div>
+      </div>
+    </header>
+
+    <div class="shell">
+      <!-- ============ SIDEBAR ============ -->
+      <aside class="sidebar">
+        <nav class="nav" id="sidebar-menu">
+          <a class="nav-item active" href="#home" data-view="home" id="navHome">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8"/><path d="M18 14.4c2.2.7 3.5 2.6 3.5 5.6"/></svg>
+            <span>Customers</span>
+          </a>
+          <a class="nav-item" href="#report" data-view="report" id="navReport">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 20v-6"/><path d="M12 20V6"/><path d="M18 20v-9"/></svg>
+            <span>Reports</span>
+          </a>
+          <a class="nav-item" href="#settings" data-view="settings" id="navSettings">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h9"/><path d="M17 8h4"/><circle cx="14.5" cy="8" r="2.5"/><path d="M3 16h4"/><path d="M12 16h9"/><circle cx="9.5" cy="16" r="2.5"/></svg>
+            <span>Settings</span>
+          </a>
+        </nav>
       </aside>
 
-      <!-- PAGE WRAPPER -->
-      <div class="page-wrapper">
-        <!-- TOP HEADER -->
-        <div class="page-header d-print-none">
-          <div class="container-xl">
-            <div class="row g-2 align-items-center">
+      <!-- ============ MAIN ============ -->
+      <main class="main">
+        <!-- Page header (Customers / Reports / Settings) -->
+        <div class="page-head" id="pageHead">
+          <div>
+            <div class="pretitle" id="pagePretitle">Monday, 19 Oct 2026</div>
+            <h1 class="page-title" id="title">Customers</h1>
+            <p class="page-sub" id="pageSub" hidden></p>
+          </div>
+          <button class="btn btn-primary btn-lg" id="addCustomerBtn" type="button">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Add Customer
+          </button>
+        </div>
+
+        <!-- ==================== HOME ==================== -->
+        <section id="homeView">
+          <div class="summary-row">
+            <div class="card-navy">
+              <div class="navy-top">
+                <span class="navy-label">Total outstanding</span>
+                <span class="navy-chip"></span>
+              </div>
+              <div class="navy-amount" id="sumOutstanding">₹0</div>
+              <div class="navy-bottom">
+                <div>
+                  <div class="navy-sub">Overdue balance</div>
+                  <div class="navy-val" id="sumOverdue">₹0</div>
+                </div>
+                <div class="right">
+                  <div class="navy-sub">Needs attention</div>
+                  <div class="navy-val" id="sumAttention">0 customers</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card top-risk" id="topRiskCard">
+              <div class="top-risk-head">
+                <div>
+                  <div class="top-risk-title">Top risky customer to call today</div>
+                  <div class="top-risk-sub">Highest overdue balance and risk score</div>
+                </div>
+                <span class="pill pill-solid-red" id="topRiskBadge" hidden></span>
+              </div>
+              <div class="top-risk-body" id="topRiskBody">
+                <div class="top-risk-empty">No overdue customers right now.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button type="button" class="tab tab-all is-active" id="tabAll" data-filter="all">All customers · 0</button>
+            <button type="button" class="tab tab-overdue" id="tabOverdue" data-filter="overdue">Overdue · 0</button>
+          </div>
+
+          <div class="cust-list" id="customerList"><!-- filled by JS --></div>
+
+          <div class="empty" id="emptyList" hidden>
+            <p>No customers yet. Click <strong>Add Customer</strong> to get started.</p>
+          </div>
+
+          <div class="list-foot" id="listFooter">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+            <span id="listFooterText">0 customers · Your credit, clearly recorded.</span>
+          </div>
+        </section>
+
+        <!-- ==================== REPORTS ==================== -->
+        <section id="reportView" hidden>
+          <div class="toolbar">
+            <label class="select-pill">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+              <select id="reportRange" aria-label="Date range"><option value="all">All time</option></select>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </label>
+            <span class="muted small" id="rAsOf">As of 19 Oct 2026</span>
+          </div>
+
+          <div class="stat-grid mb">
+            <div class="card stat">
+              <span class="stat-ic blue"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg></span>
+              <div class="stat-label">Total Credit Given</div>
+              <div class="stat-value" id="rTotalCredit">₹0</div>
+            </div>
+            <div class="card stat">
+              <span class="stat-ic green"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17"/><path d="M16 17H7V8"/></svg></span>
+              <div class="stat-label">Total Paid</div>
+              <div class="stat-value green" id="rTotalPaid">₹0</div>
+            </div>
+            <div class="card stat">
+              <span class="stat-ic blue"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h12v4"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1"/></svg></span>
+              <div class="stat-label">Outstanding</div>
+              <div class="stat-value" id="rOutstanding">₹0</div>
+            </div>
+            <div class="card stat stat-amber">
+              <span class="stat-ic amber"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+              <div class="stat-label">Overdue</div>
+              <div class="stat-value" id="rOverdue">₹0</div>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="card pad">
+              <div class="row-between">
+                <h3 class="card-h">Collection overview</h3>
+                <span class="big-pct green" id="rPaidPct">0%</span>
+              </div>
+              <p class="muted mt-s">Of all credit given has been paid back.</p>
+              <div class="seg-bar" id="rBar">
+                <span class="seg seg-paid" style="flex:0"></span>
+                <span class="seg seg-due" style="flex:0"></span>
+                <span class="seg seg-over" style="flex:0"></span>
+              </div>
+              <div class="legend">
+                <span><i class="dot dot-paid"></i>Paid</span>
+                <span><i class="dot dot-due"></i>Not yet due</span>
+                <span><i class="dot dot-over"></i>Overdue</span>
+              </div>
+              <div class="rule"></div>
+              <div class="row-between">
+                <span class="muted lg">Not yet due</span>
+                <b class="lg" id="rNotYetDue">₹0</b>
+              </div>
+            </div>
+
+            <div>
+              <div class="sec-head">
+                <h2>Risky Customers</h2>
+                <span class="pill pill-amber pill-lg" id="rCustomers">0 to follow up</span>
+              </div>
+              <div class="card risk-list" id="riskyList"><!-- filled by JS --></div>
+              <div class="card empty" id="emptyRisky" hidden><p>No risky customers — nice work!</p></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== CUSTOMER DETAIL ==================== -->
+        <section id="detailView" hidden>
+          <div class="sub-head">
+            <button class="icon-btn" type="button" data-back="home" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div>
+              <div class="sub-title">Customer detail</div>
+              <div class="sub-sub">CreditSaver · Customer ledger</div>
+            </div>
+          </div>
+
+          <div class="detail-grid">
+            <div class="col">
+              <div class="card" id="customerCard"><!-- filled by JS --></div>
+
+              <div class="action-row">
+                <button class="btn btn-primary btn-xl" id="addCreditBtn" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg> Credit Given</button>
+                <button class="btn btn-green btn-xl" id="addPaymentBtn" type="button"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 7 7 17"/><path d="M16 17H7V8"/></svg> Payment Received</button>
+              </div>
+
+              <div class="card pad" id="analysisPanel" hidden><!-- filled by JS --></div>
+            </div>
+
+            <div class="col">
+              <div class="sec-head">
+                <h2>Transaction History</h2>
+                <span class="muted" id="txnCount">0 entries</span>
+              </div>
+              <div class="card txn-card">
+                <div class="txn-totals">
+                  <div><div class="muted small">Total credit</div><div class="txn-total" id="tTotalCredit">₹0</div></div>
+                  <div class="right"><div class="muted small">Total paid</div><div class="txn-total green" id="tTotalPaid">₹0</div></div>
+                </div>
+                <div id="txnList" class="txn-list"><!-- filled by JS --></div>
+                <div class="empty" id="emptyTxn" hidden><p>No transactions yet.</p></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== CREDIT GIVEN / PAYMENT RECEIVED ==================== -->
+        <section id="txnView" hidden>
+          <div class="sub-head">
+            <button class="icon-btn" type="button" data-cancel-txn aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div>
+              <div class="sub-title" id="txnHeadTitle">Payment Received</div>
+              <div class="sub-sub">CreditSaver · Customer ledger</div>
+            </div>
+          </div>
+
+          <form id="txnForm" class="form-page" novalidate autocomplete="off">
+            <h1 class="form-title" id="txnTitle">Record a payment</h1>
+            <p class="form-sub" id="txnSub">Keep every collection in the customer’s ledger.</p>
+            <input type="hidden" name="type" />
+
+            <div class="form-grid">
               <div class="col">
-                <div class="page-pretitle" id="pagePretitle">Overview</div>
-                <h2 class="page-title" id="title">Customers</h2>
-              </div>
-              <div class="col-auto ms-auto d-print-none">
-                <div class="btn-list">
-                  <button class="btn btn-primary d-none d-sm-inline-block" id="addCustomerBtn">
-                    <i class="ti ti-plus me-1"></i>
-                    Add Customer
-                  </button>
-                  <button class="btn btn-primary d-sm-none" id="addCustomerBtnMobile">
-                    <i class="ti ti-plus"></i>
-                  </button>
-                  <button class="btn btn-outline-secondary" id="logoutBtn">
-                    <i class="ti ti-logout me-1"></i>
-                    Logout
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PAGE BODY -->
-        <div class="page-body">
-          <div class="container-xl" id="app">
-
-            <!-- ==================== HOME / CUSTOMERS VIEW ==================== -->
-            <section id="homeView">
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="me-3">
-                          <span class="avatar avatar-lg bg-primary-lt">
-                            <i class="ti ti-users" style="font-size: 1.5rem;"></i>
-                          </span>
-                        </div>
-                        <div>
-                          <div class="h3 mb-0" id="heroTitle">CreditPulse</div>
-                          <div class="text-secondary">Digital notebook for wholesalers</div>
-                        </div>
-                      </div>
+                <div class="card pick-card">
+                  <div class="pick-top">
+                    <span class="avatar avatar-lg sq" id="txnAvatar">ST</span>
+                    <div class="pick-id">
+                      <div class="pick-name" id="txnCustName">—</div>
+                      <div class="pick-phone" id="txnCustPhone"></div>
                     </div>
+                    <span class="pick-chev"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+                    <select id="txnCustomerSelect" aria-label="Choose customer"></select>
                   </div>
+                  <div class="rule"></div>
+                  <div class="kv"><span>Current outstanding</span><b id="txnOutstanding">₹0</b></div>
+                  <div class="kv"><span id="txnRow2Label">Overdue balance</span><b id="txnRow2Value">₹0</b></div>
+                </div>
+
+                <label class="lbl" for="txnAmount">Amount (₹)</label>
+                <div class="amount-box" id="amountBox">
+                  <span class="rs">₹</span>
+                  <input id="txnAmount" name="amount" type="text" inputmode="numeric" placeholder="0" autocomplete="off" />
+                </div>
+                <p class="hint" id="amountHint">Enter the amount you received from the customer.</p>
+
+                <div id="paidDateLabel">
+                  <label class="lbl" for="txnPaidDate">Paid on</label>
+                  <label class="date-box">
+                    <span class="date-text" id="txnPaidDateText"></span>
+                    <input id="txnPaidDate" type="date" name="paid_date" />
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+                  </label>
+                  <p class="hint" id="paidHint">Today · The date the payment was received.</p>
+                </div>
+
+                <div id="dueDateLabel" hidden>
+                  <label class="lbl" for="txnDueDate">Due date</label>
+                  <label class="date-box">
+                    <span class="date-text" id="txnDueDateText"></span>
+                    <input id="txnDueDate" type="date" name="due_date" />
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18"/></svg>
+                  </label>
+                  <p class="hint" id="dueHint">Payment is due in 14 days.</p>
                 </div>
               </div>
 
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Customers</h3>
-                  <div class="card-actions">
-                    <div class="input-icon">
-                      <input type="search" id="searchInput" class="form-control" placeholder="Search customers…" />
-                      <span class="input-icon-addon">
-                        <i class="ti ti-search"></i>
-                      </span>
-                    </div>
+              <div class="col">
+                <div class="callout callout-green" id="txnCallout"></div>
+
+                <div class="card pad" id="afterCard">
+                  <div class="row-between">
+                    <h3 class="card-h">After saving</h3>
+                    <span class="pill pill-green pill-lg" id="afterPill">Payment</span>
                   </div>
+                  <div id="afterBody"></div>
                 </div>
-                <div class="table-responsive">
-                  <table class="table table-vcenter card-table table-hover">
-                    <thead>
-                      <tr>
-                        <th>Customer</th>
-                        <th>Phone</th>
-                        <th>Outstanding</th>
-                        <th>Risk</th>
-                        <th>Status</th>
-                        <th class="w-1"></th>
-                      </tr>
-                    </thead>
-                    <tbody id="customerList">
-                      <!-- filled by JS -->
-                    </tbody>
-                  </table>
-                </div>
-                <div class="card-body text-center text-secondary py-5" id="emptyList" hidden>
-                  <div class="mb-3">
-                    <i class="ti ti-users-off" style="font-size: 3rem; opacity: 0.4;"></i>
-                  </div>
-                  <p class="mb-0">No customers yet. Click <strong>Add Customer</strong> to get started.</p>
-                </div>
-              </div>
-            </section>
 
-            <!-- ==================== REPORT VIEW ==================== -->
-            <section id="reportView" hidden>
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Total Credit Given</div>
-                      </div>
-                      <div class="h1 mb-0" id="rTotalCredit">₹0</div>
-                    </div>
-                  </div>
+                <div class="btn-pair">
+                  <button type="button" class="btn btn-outline btn-xl" data-cancel-txn>Cancel</button>
+                  <button type="submit" class="btn btn-green btn-xl" id="txnSaveBtn">Save</button>
                 </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Total Paid</div>
-                      </div>
-                      <div class="h1 mb-0 text-success" id="rTotalPaid">₹0</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Outstanding</div>
-                      </div>
-                      <div class="h1 mb-0 text-danger" id="rOutstanding">₹0</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-sm-6 col-lg-3">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex align-items-center">
-                        <div class="subheader">Overdue</div>
-                      </div>
-                      <div class="h1 mb-0 text-danger" id="rOverdue">₹0</div>
-                    </div>
-                  </div>
-                </div>
+                <p class="foot-note" id="txnFootNote"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Added to Transaction History when saved.</span></p>
               </div>
-
-              <div class="row row-deck row-cards">
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-header">
-                      <h3 class="card-title">Risky Customers</h3>
-                      <div class="card-actions">
-                        <span class="badge bg-azure-lt" id="rCustomers">0 customers</span>
-                      </div>
-                    </div>
-                    <div class="table-responsive">
-                      <table class="table table-vcenter card-table table-hover">
-                        <thead>
-                          <tr>
-                            <th>Customer</th>
-                            <th>Phone</th>
-                            <th>Outstanding</th>
-                            <th>Risk Score</th>
-                            <th>Labels</th>
-                          </tr>
-                        </thead>
-                        <tbody id="riskyList">
-                          <!-- filled by JS -->
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class="card-body text-center text-secondary py-5" id="emptyRisky" hidden>
-                      <div class="mb-3">
-                        <i class="ti ti-mood-check" style="font-size: 3rem; opacity: 0.4;"></i>
-                      </div>
-                      <p class="mb-0">No risky customers — nice work!</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- ==================== DETAIL VIEW ==================== -->
-            <section id="detailView" hidden>
-              <div class="row row-deck row-cards mb-3">
-                <div class="col-12">
-                  <div class="card" id="customerCard">
-                    <!-- filled by JS -->
-                  </div>
-                </div>
-              </div>
-
-              <!-- Risk Analysis Panel -->
-              <div class="card mb-3" id="analysisPanel" hidden>
-                <div class="card-header">
-                  <h3 class="card-title">
-                    <i class="ti ti-shield-check me-2"></i>
-                    Risk Analysis
-                  </h3>
-                </div>
-                <div class="card-body">
-                  <div class="recommendation mb-3" id="analysisRecommendation"></div>
-                  <div class="btn-list" id="analysisActions"></div>
-                </div>
-              </div>
-
-              <!-- Action buttons -->
-              <div class="row mb-3">
-                <div class="col-6">
-                  <button class="btn btn-orange w-100" id="addCreditBtn">
-                    <i class="ti ti-plus me-1"></i>
-                    Credit Given
-                  </button>
-                </div>
-                <div class="col-6">
-                  <button class="btn btn-success w-100" id="addPaymentBtn">
-                    <i class="ti ti-check me-1"></i>
-                    Payment Received
-                  </button>
-                </div>
-              </div>
-
-              <!-- Transaction History -->
-              <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">Transaction History</h3>
-                </div>
-                <div class="table-responsive">
-                  <table class="table table-vcenter card-table">
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Date</th>
-                        <th class="text-end">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody id="txnList">
-                      <!-- filled by JS -->
-                    </tbody>
-                  </table>
-                </div>
-                <div class="card-body text-center text-secondary py-4" id="emptyTxn" hidden>
-                  No transactions yet.
-                </div>
-              </div>
-            </section>
-
-            <!-- ==================== SETTINGS VIEW ==================== -->
-            <section id="settingsView" hidden>
-              <div class="row">
-                <div class="col-12 col-md-8 col-lg-6">
-                  <form id="settingsForm" class="card">
-                    <div class="card-header">
-                      <h3 class="card-title">App Settings</h3>
-                    </div>
-                    <div class="card-body">
-                      <div class="mb-3">
-                        <label class="form-label">App name</label>
-                        <input type="text" class="form-control" name="appName" required />
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Default credit limit (₹)</label>
-                        <input type="number" class="form-control" name="defaultCreditLimit" min="0" step="1" />
-                      </div>
-                      <div class="mb-3">
-                        <label class="form-label">Theme</label>
-                        <select class="form-select" name="theme">
-                          <option value="dark">Dark</option>
-                          <option value="light">Light</option>
-                        </select>
-                      </div>
-                      <div class="mb-3">
-                        <div class="form-label">Version</div>
-                        <div class="form-control-plaintext" id="versionLabel">1.0.0</div>
-                      </div>
-                    </div>
-                    <div class="card-footer text-end">
-                      <button type="button" class="btn btn-outline-danger me-2" id="clearDataBtn">
-                        Clear all data
-                      </button>
-                      <button type="submit" class="btn btn-primary">Save settings</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            </section>
-
-          </div>
-        </div>
-
-        <footer class="footer footer-transparent d-print-none">
-          <div class="container-xl">
-            <div class="row text-center align-items-center">
-              <div class="col-12">
-                <ul class="list-inline list-inline-dots mb-0">
-                  <li class="list-inline-item">
-                    CreditPulse &copy; 2026
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </div>
-
-    <!-- ==================== MODALS ==================== -->
-
-    <!-- Customer Modal -->
-    <div class="modal modal-blur fade" id="customerDialog" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <form id="customerForm">
-            <div class="modal-header">
-              <h5 class="modal-title">New Customer</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label">Name</label>
-                <input type="text" class="form-control" name="name" required autocomplete="off" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <input type="text" class="form-control" name="phone" required inputmode="numeric" autocomplete="off" />
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Credit limit (₹)</label>
-                <input type="number" class="form-control" name="credit_limit" min="0" step="1" value="0" />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary ms-auto">Save</button>
             </div>
           </form>
-        </div>
-      </div>
-    </div>
+        </section>
 
-    <!-- Transaction Modal -->
-    <div class="modal modal-blur fade" id="txnDialog" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <form id="txnForm">
-            <div class="modal-header">
-              <h5 class="modal-title" id="txnTitle">Add Transaction</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <!-- ==================== NEW CUSTOMER ==================== -->
+        <section id="newCustomerView" hidden>
+          <div class="sub-head">
+            <button class="icon-btn" type="button" data-back="home" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg></button>
+            <div>
+              <div class="sub-title">New Customer</div>
+              <div class="sub-sub">CreditSaver · Customer ledger</div>
             </div>
-            <div class="modal-body">
-              <input type="hidden" name="type" />
-              <div class="mb-3">
-                <label class="form-label">Amount (₹)</label>
-                <input type="number" class="form-control" name="amount" min="1" step="1" required />
+          </div>
+
+          <form id="customerForm" class="form-page" novalidate autocomplete="off">
+            <span class="tile-ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-3.5 3-6 7-6"/><path d="M18 14v6M15 17h6"/></svg></span>
+            <h1 class="form-title">Start a customer ledger</h1>
+            <p class="form-sub">Add their contact details and set how much credit you’re comfortable extending.</p>
+
+            <div class="form-grid">
+              <div class="col">
+                <div class="card pad">
+                  <h3 class="card-h">Customer details</h3>
+                  <label class="field-lbl" for="ncName">Name</label>
+                  <input class="input" id="ncName" type="text" name="name" required placeholder="Anand Provision Stores" />
+
+                  <label class="field-lbl" for="ncPhone">Phone</label>
+                  <div class="input-ic">
+                    <input class="input" id="ncPhone" type="text" name="phone" required inputmode="tel" placeholder="+91 98765 40123" />
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+                  </div>
+                  <p class="hint">Use a 10-digit mobile number with country code.</p>
+
+                  <label class="field-lbl" for="ncLimit">Credit limit (₹)</label>
+                  <input class="input" id="ncLimit" type="text" name="credit_limit" inputmode="numeric" placeholder="25,000" />
+                  <p class="hint" id="ncLimitHint">The default is ₹50,000. Set a lower limit for a new customer.</p>
+                </div>
               </div>
-              <div class="mb-3" id="dueDateLabel">
-                <label class="form-label">Due date</label>
-                <input type="date" class="form-control" name="due_date" />
+
+              <div class="col">
+                <div class="callout callout-blue">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5v.01"/></svg>
+                  <div>
+                    <b>A fresh start, with clear limits</b>
+                    <p>Your customer’s balance starts at ₹0. Add a Credit Given entry when you make the first sale.</p>
+                  </div>
+                </div>
+
+                <div class="card pad">
+                  <h3 class="card-h">Opening ledger</h3>
+                  <div class="kv"><span>Outstanding</span><b>₹0</b></div>
+                  <div class="rule"></div>
+                  <div class="kv"><span>Available credit</span><b class="blue" id="ncAvailable">₹0</b></div>
+                </div>
+
+                <div class="btn-pair">
+                  <button type="button" class="btn btn-outline btn-xl" data-back="home">Cancel</button>
+                  <button type="submit" class="btn btn-primary btn-xl">Save</button>
+                </div>
+                <p class="foot-note center">Customer will be added when you save.</p>
               </div>
-              <div class="mb-3" id="paidDateLabel" hidden>
-                <label class="form-label">Paid on</label>
-                <input type="date" class="form-control" name="paid_date" />
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary ms-auto">Save</button>
             </div>
           </form>
-        </div>
-      </div>
+        </section>
+
+        <!-- ==================== SETTINGS ==================== -->
+        <section id="settingsView" hidden>
+          <div class="two-col settings-grid">
+            <div class="col">
+              <form id="settingsForm" class="card pad" autocomplete="off">
+                <h3 class="card-h with-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/><path d="M10 17h10"/><circle cx="8" cy="17" r="2"/></svg> Notebook preferences</h3>
+                <div class="rule"></div>
+
+                <label class="field-lbl" for="setAppName">App name</label>
+                <input class="input" id="setAppName" type="text" name="appName" required />
+
+                <label class="field-lbl" for="setLimit">Default credit limit (₹)</label>
+                <input class="input" id="setLimit" type="text" name="defaultCreditLimit" inputmode="numeric" />
+                <p class="hint">Applied to new customers. You can change it for each customer.</p>
+
+                <div class="field-lbl">Theme</div>
+                <div class="seg-ctrl">
+                  <label><input type="radio" name="theme" value="light" checked /><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg> Light <em class="chk"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></em></span></label>
+                  <label><input type="radio" name="theme" value="dark" /><span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> Dark</span></label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-xl btn-block mt-m">Save settings</button>
+              </form>
+            </div>
+
+            <div class="col">
+              <div class="card pad">
+                <h3 class="card-h with-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> <span>About <span id="aboutName">CreditSaver</span></span></h3>
+                <p class="muted lh mt-s">Digital notebook for wholesalers. Track customer credit, payments, overdue balances and make effective decisions in one place.</p>
+                <div class="rule"></div>
+                <div class="kv"><span>Version</span><b id="versionLabel">1.0.0</b></div>
+              </div>
+
+              <div class="card pad">
+                <h3 class="card-h with-ic danger"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17v.01"/></svg> Data management</h3>
+                <p class="muted lh mt-s">Clear all customers and transactions from this notebook. This action cannot be undone.</p>
+                <button type="button" class="btn btn-danger-outline btn-xl btn-block mt-m" id="clearDataBtn"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg> Clear all data</button>
+              </div>
+
+              <button type="button" class="logout-link" id="settingsLogout"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg> Logout</button>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
 
     <!-- Toast -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div class="toast-wrap">
       <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" hidden>
         <div class="toast-body" id="toastBody"></div>
       </div>
     </div>
 
-<script type="module">
+    <script type="module">
       import { supabase } from './supabase.js';
 
       async function checkAuth() {
@@ -475,13 +464,13 @@
     <script type="module" src="./js/api.js"></script>
     <script type="module" src="./js/script.js"></script>
     <script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/public/sw.js").catch((err) => {
-        console.warn("Service worker registration failed", err);
-      });
-    });
-  }
-</script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/public/sw.js").catch((err) => {
+            console.warn("Service worker registration failed", err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
