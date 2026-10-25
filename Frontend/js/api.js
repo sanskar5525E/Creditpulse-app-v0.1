@@ -113,6 +113,7 @@ function decorateCustomer(customer, allTxns) {
   return {
     ...customer,
     outstanding: metrics.balance,
+    overdue_amount: metrics.overdue_amount,
     risk_score: metrics.risk_score,
     labels: customer.labels || labels,
   };
@@ -562,6 +563,13 @@ export const API = {
       const transactions = await db.getTransactionsByCustomer(customer.id);
       return localDecisionResponse(customer, txn, transactions);
     }
+  },
+
+  async decisionAnalysis(id) {
+    if (browserSaysOffline() || isLocalId(id)) {
+      throw new Error("Decision Master needs an internet connection and a synced customer");
+    }
+    return serverFetch("/customers/" + id + "/decision-analysis", { method: "POST" });
   },
 
   async getSummary() {
