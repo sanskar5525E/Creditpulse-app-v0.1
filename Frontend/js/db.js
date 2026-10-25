@@ -122,9 +122,9 @@ export async function getSettings() {
   const tx = db.transaction('settings', 'readonly');
   const row = await reqToPromise(tx.objectStore('settings').get('app'));
   return row?.value || {
-    appName: 'CreditPulse',
+    appName: 'CreditSaver',
     defaultCreditLimit: 5000,
-    theme: 'dark',
+    theme: 'light',
     version: '1.0.0',
   };
 }
