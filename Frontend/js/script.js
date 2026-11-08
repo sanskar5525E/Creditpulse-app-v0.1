@@ -366,7 +366,7 @@ import { API } from "./api.js";
       );
       if (currentFilter === "overdue") list = list.filter(isOverdue);
       if (!customerList) return;
-      customerList.innerHTML = "";
+      const frag = document.createDocumentFragment();
       if (emptyList) emptyList.hidden = list.length > 0;
       const foot = $("listFooterText");
       if (foot) foot.textContent = all.length + (all.length === 1 ? " customer" : " customers") + " \u00B7 Your credit, clearly recorded.";
@@ -383,8 +383,9 @@ import { API } from "./api.js";
           '<div class="cust-status">' + riskPill(c.risk_score ?? 0) + statusText(c) + "</div>" +
           '<span class="chev">' + ICON_CHEVRON + "</span>";
         row.addEventListener("click", () => showDetail(c.id));
-        customerList.appendChild(row);
+        frag.appendChild(row);
       });
+      customerList.replaceChildren(frag); // one DOM swap instead of N appends
     } catch (err) {
       toast("Failed to load customers: " + err.message, true);
       if (emptyList) emptyList.hidden = false;
@@ -437,7 +438,7 @@ import { API } from "./api.js";
       const risky = s.risky || [];
       $("rCustomers").textContent = risky.length + " to follow up";
       const list = $("riskyList");
-      list.innerHTML = "";
+      const riskFrag = document.createDocumentFragment();
       list.hidden = risky.length === 0;
       $("emptyRisky").hidden = risky.length > 0;
       risky.forEach((c) => {
@@ -457,8 +458,9 @@ import { API } from "./api.js";
           (overdue > 0 ? '<span class="pill pill-lg pill-amber">Overdue</span>' : "") +
           "</div></div></div>";
         row.addEventListener("click", () => showDetail(c.id));
-        list.appendChild(row);
+        riskFrag.appendChild(row);
       });
+      list.replaceChildren(riskFrag);
     } catch (err) {
       toast("Failed to load report: " + err.message, true);
     }
@@ -668,7 +670,7 @@ import { API } from "./api.js";
   function renderTxns(txns) {
     if (!txnList) return;
     const list = (txns || []).slice();
-    txnList.innerHTML = "";
+    const txnFrag = document.createDocumentFragment();
     if (emptyTxn) emptyTxn.hidden = list.length > 0;
     $("txnCount").textContent = list.length + (list.length === 1 ? " entry" : " entries");
 
@@ -710,8 +712,9 @@ import { API } from "./api.js";
         '<div class="txn-line">' + fmtDate(t.created_at || t.due_date || t.paid_date) + "</div>" +
         '<div class="txn-line' + (late ? " late" : "") + '">' + line2 + "</div></div>" +
         '<div class="txn-amt' + (isCredit ? "" : " paid") + '">' + rupees(t.amount) + "</div>";
-      txnList.appendChild(row);
+      txnFrag.appendChild(row);
     });
+    txnList.replaceChildren(txnFrag);
   }
 
   // ======================= CREDIT GIVEN / PAYMENT RECEIVED =======================
