@@ -85,6 +85,72 @@ def get_settings(
         logger.exception("get_settings failed")
         raise HTTPException(status_code=500, detail="Could not load settings")
 
+from fastapi import Body
+
+@router.patch("/settings")
+def update_settings(
+    patch: dict = Body(...),
+    user_id: str = Depends(get_current_user),
+    token: str = Depends(get_token),
+):
+    db = get_authed_client(token)
+
+    try:
+        allowed_fields = {
+            "theme",
+            "appName",
+            "defaultCreditLimit"
+        }
+
+        # Reject unsupported fields
+        invalid_fields = set(patch.keys()) - allowed_fields
+
+        if invalid_fields:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid settings fields: {list(invalid_fields)}"
+            )
+
+        if not patch:
+            raise HTTPException(
+                status_code=400,
+                detail="No settings provided"
+            )
+
+        # Validate theme
+        if "theme" in patch:
+            if patch["theme"] not in ("light", "dark"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Theme must be light or dark"
+                )
+
+        # Update only the authenticated user's settings
+        resp = (
+            db.table("settings")
+            .update(patch)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        if not resp.data:
+            raise HTTPException(
+                status_code=404,
+                detail="Settings not found"
+            )
+
+        return resp.data[0]
+
+    except HTTPException:
+        raise
+
+    except Exception:
+        logger.exception("update_settings failed")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not update settings"
+        )
+
 
 
 @router.get("/customers")
