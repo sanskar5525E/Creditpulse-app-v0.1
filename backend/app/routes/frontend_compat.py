@@ -49,6 +49,8 @@ def validate_transaction_payload(payload: Dict[str, Any], current_user: str) -> 
         raise HTTPException(status_code=404, detail="Customer not found")
 
 
+from fastapi import Body
+
 @router.get("/settings")
 def get_settings(
     user_id: str = Depends(get_current_user),
@@ -70,22 +72,35 @@ def get_settings(
 
         created = (
             db.table("settings")
-            .upsert({"user_id": user_id, "defaultCreditLimit": 30000})
+            .upsert(
+                {
+                    "user_id": user_id,
+                    "theme": "light",
+                    "appName": "CreditPulse",
+                    "defaultCreditLimit": 30000
+                },
+                on_conflict="user_id"
+            )
             .execute()
         )
 
         if not created.data:
-            raise HTTPException(status_code=500, detail="Failed to create default settings")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to create default settings"
+            )
 
         return created.data[0]
 
     except HTTPException:
         raise
-    except Exception :
+    except Exception:
         logger.exception("get_settings failed")
-        raise HTTPException(status_code=500, detail="Could not load settings")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not load settings"
+        )
 
-from fastapi import Body
 
 @router.patch("/settings")
 def update_settings(
@@ -102,7 +117,6 @@ def update_settings(
             "defaultCreditLimit"
         }
 
-        # Reject unsupported fields
         invalid_fields = set(patch.keys()) - allowed_fields
 
         if invalid_fields:
@@ -117,7 +131,6 @@ def update_settings(
                 detail="No settings provided"
             )
 
-        # Validate theme
         if "theme" in patch:
             if patch["theme"] not in ("light", "dark"):
                 raise HTTPException(
@@ -125,31 +138,37 @@ def update_settings(
                     detail="Theme must be light or dark"
                 )
 
-        # Update only the authenticated user's settings
+        settings_data = {
+            "user_id": user_id,
+            **patch
+        }
+
         resp = (
             db.table("settings")
-            .update(patch)
-            .eq("user_id", user_id)
+            .upsert(
+                settings_data,
+                on_conflict="user_id"
+            )
             .execute()
         )
 
         if not resp.data:
             raise HTTPException(
-                status_code=404,
-                detail="Settings not found"
+                status_code=500,
+                detail="Settings were not saved"
             )
 
         return resp.data[0]
 
     except HTTPException:
         raise
-
     except Exception:
         logger.exception("update_settings failed")
         raise HTTPException(
             status_code=500,
             detail="Could not update settings"
         )
+
 
 
 
