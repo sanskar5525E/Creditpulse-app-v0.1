@@ -201,19 +201,25 @@ async function applyPending(item) {
     return;
   }
 
-  if (item.op === "saveSettings") {
+if (item.op === "saveSettings") {
   try {
+    console.log("Saving settings:", item.payload);
+    console.log("Selected theme:", item.payload?.theme);
+
     await serverFetch("/settings", {
       method: "PATCH",
-      body: JSON.stringify({
-        ...item.payload,
-        theme: item.payload.theme || "light",
-      }),
+      body: JSON.stringify(item.payload),
     }, { redirectOn401: false });
+
+    console.log("Settings saved successfully");
+
   } catch (err) {
+    console.error("Settings save failed:", err);
+
     if (err.status === 404 || err.status === 405) return;
     throw err;
   }
+
   return;
 }
   if (item.op === "deleteCustomer") {
