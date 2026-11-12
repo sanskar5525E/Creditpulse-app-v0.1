@@ -142,26 +142,43 @@ import { API } from "./api.js";
     el.textContent = loading ? "\u2026" : el.dataset.originalText;
   }
 
-  async function applySettings() {
-    try {
-      const s = await API.getSettings();
-      cachedSettings = s;
-      const name = s.appName || "CreditSaver";
-      document.title = name + " \u2014 Digital notebook for wholesalers";
-      if ($("brandName")) $("brandName").textContent = name;
-      if ($("aboutName")) $("aboutName").textContent = name;
-      versionLabel.textContent = s.version || "1.0.0";
-      const f = $("settingsForm");
-      if (f) {
-        f.elements.appName.value = name;
-        f.elements.defaultCreditLimit.value = fmtNum(s.defaultCreditLimit);
-        f.elements.theme.value = s.theme === "dark" ? "dark" : "light";
-      }
-    } catch (err) {
-      toast("Failed to load settings \u2014 using defaults", true);
-    }
-  }
+  
+async function applySettings() {
+  try {
+    const s = await API.getSettings();
+    cachedSettings = s;
 
+    const name = s.appName || "CreditSaver";
+    const theme = s.theme === "dark" ? "dark" : "light";
+
+    document.title = name + " — Digital notebook for wholesalers";
+
+    if ($("brandName")) $("brandName").textContent = name;
+    if ($("aboutName")) $("aboutName").textContent = name;
+
+    versionLabel.textContent = s.version || "1.0.0";
+
+    const f = $("settingsForm");
+
+    if (f) {
+      f.elements.appName.value = name;
+      f.elements.defaultCreditLimit.value = fmtNum(s.defaultCreditLimit);
+      f.elements.theme.value = theme;
+    }
+
+    // Apply saved theme to the entire application
+    applyTheme(theme);
+
+  } catch (err) {
+    console.error("Settings loading failed:", err);
+    toast("Failed to load settings — using defaults", true);
+  }
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("theme", theme);
+}
   bindMoneyInput($("setLimit"));
 
   $("settingsForm")?.addEventListener("submit", async (e) => {
