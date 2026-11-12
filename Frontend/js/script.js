@@ -187,12 +187,15 @@ function applyTheme(theme) {
     setLoading(btn, true);
     const fd = new FormData(e.target);
     try {
+      const chosenTheme = fd.get("theme") === "dark" ? "dark" : "light";
       await API.saveSettings({
         appName: String(fd.get("appName") || "CreditSaver").trim() || "CreditSaver",
         defaultCreditLimit: parseAmt(fd.get("defaultCreditLimit")),
-        theme: fd.get("theme") === "dark" ? "dark" : "light",
+        theme: chosenTheme,
       });
+      applyTheme(chosenTheme);
       await applySettings();
+      applyTheme(chosenTheme);
       toast("Settings saved");
     } catch (err) {
       toast("Failed to save settings: " + err.message, true);
