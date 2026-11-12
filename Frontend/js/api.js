@@ -337,6 +337,9 @@ export const API = {
   async getSettings() {
     const local = await db.getSettings();
     if (browserSaysOffline()) return local;
+    // an unsynced local settings change is newer than whatever the server still has
+    const pending = await db.listPending();
+    if (pending.some((p) => p.op === "saveSettings")) return local;
     try {
       const remote = await serverFetch("/settings");
       const merged = {
