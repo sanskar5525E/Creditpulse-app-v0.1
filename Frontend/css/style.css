@@ -570,3 +570,56 @@ html.app { --c-green-dark: #147a4d; --c-amber-dark: #8a5a00; }
   .two-col, .detail-grid, .form-grid { grid-template-columns: 1fr; }
   .cc-amount { font-size: 38px; }
 }
+
+/* ================================
+   CREDITPULSE THEME SYSTEM
+================================ */
+
+/* Light Theme */
+:root,
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    --bg-color: #f8fafc;
+    --surface-color: #ffffff;
+    --card-color: #ffffff;
+    --text-color: #1e293b;
+    --secondary-text: #64748b;
+    --border-color: #e2e8f0;
+    --input-bg: #ffffff;
+    --primary-color: #2563eb;
+}
+
+/* Dark Theme */
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --bg-color: #0f172a;
+    --surface-color: #1e293b;
+    --card-color: #1e293b;
+    --text-color: #f1f5f9;
+    --secondary-text: #94a3b8;
+    --border-color: #334155;
+    --input-bg: #1e293b;
+    --primary-color: #60a5fa;
+}
+
+/* Apply theme */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.card {
+    background: var(--card-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+input,
+select,
+textarea {
+    background: var(--input-bg);
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
