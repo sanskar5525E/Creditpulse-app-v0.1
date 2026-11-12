@@ -202,18 +202,20 @@ async function applyPending(item) {
   }
 
   if (item.op === "saveSettings") {
-    try {
-      await serverFetch("/settings", {
-        method: "PATCH",
-        body: JSON.stringify(item.payload),
-      }, { redirectOn401: false });
-    } catch (err) {
-      if (err.status === 404 || err.status === 405) return;
-      throw err;
-    }
-    return;
+  try {
+    await serverFetch("/settings", {
+      method: "PATCH",
+      body: JSON.stringify({
+        ...item.payload,
+        theme: item.payload.theme || "light",
+      }),
+    }, { redirectOn401: false });
+  } catch (err) {
+    if (err.status === 404 || err.status === 405) return;
+    throw err;
   }
-
+  return;
+}
   if (item.op === "deleteCustomer") {
     await serverFetch(`/customers/${item.payload.id}`, { method: "DELETE" }, { redirectOn401: false });
     return;
