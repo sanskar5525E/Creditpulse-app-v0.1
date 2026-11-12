@@ -623,3 +623,54 @@ textarea {
     color: var(--text-color);
     border-color: var(--border-color);
 }
+
+/* ================================
+   DARK THEME — overrides for the app's --c-* tokens and hardcoded light surfaces
+   (the app styles read --c-*, so --bg-color etc. above never reached them)
+================================ */
+html.app[data-theme="dark"] {
+  color-scheme: dark;
+  --c-bg: #0b1220;
+  --c-surface: #151e2e;
+  --c-border: #2a3649;
+  --c-text: #e8edf5;
+  --c-muted: #93a1b5;
+  --c-primary: #4f8cff;
+  --c-primary-dark: #3b78ea;
+  --c-primary-soft: #1c2f55;
+  --c-navy: #0f1a30;
+  --c-red-soft: #3a1c22;
+  --c-amber-soft: #3a2f14;
+  --c-green-soft: #13301f;
+  --c-red-text: #ff6b6b;
+  --c-amber-text: #fbbf24;
+  --c-green-text: #4ade80;
+  --c-green-dark: #4ade80;
+  --c-amber-dark: #fbbf24;
+}
+html.app[data-theme="dark"] .user-menu button:hover,
+html.app[data-theme="dark"] .nav-item:hover,
+html.app[data-theme="dark"] .btn-ghost:hover,
+html.app[data-theme="dark"] .btn-outline:hover,
+html.app[data-theme="dark"] .tbl tbody tr.clickable:hover { background: #1d2940; }
+html.app[data-theme="dark"] .mini-stat,
+html.app[data-theme="dark"] .dm-out,
+html.app[data-theme="dark"] .seg-ctrl { background: #111a2b; }
+html.app[data-theme="dark"] .search,
+html.app[data-theme="dark"] .field input,
+html.app[data-theme="dark"] .field select,
+html.app[data-theme="dark"] .select-pill,
+html.app[data-theme="dark"] .date-box,
+html.app[data-theme="dark"] .modal-card,
+html.app[data-theme="dark"] .btn-outline,
+html.app[data-theme="dark"] .btn-danger-outline,
+html.app[data-theme="dark"] .input,
+html.app[data-theme="dark"] .amount-box { background: var(--c-surface); color: var(--c-text); }
+html.app[data-theme="dark"] .seg-ctrl input:checked + span { background: var(--c-surface); }
+html.app[data-theme="dark"] .stat-amber { background: var(--c-amber-soft); border-color: var(--c-amber-soft); }
+html.app[data-theme="dark"] .tab-overdue.is-active { background: #4a3a12; }
+html.app[data-theme="dark"] .callout-amber { background: var(--c-amber-soft); }
+html.app[data-theme="dark"] .callout-green,
+html.app[data-theme="dark"] .txn-ic.payment { background: var(--c-green-soft); }
+html.app[data-theme="dark"] .cust-row:hover { border-color: #3a4a63; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+html.app[data-theme="dark"] .navy-chip { background: var(--c-surface); }
