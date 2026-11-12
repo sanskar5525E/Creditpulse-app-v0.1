@@ -13,6 +13,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="./css/style.css" />
+    <script>
+      /* apply saved theme before first paint (avoids light flash) */
+      try { document.documentElement.setAttribute("data-theme", localStorage.getItem("theme") === "dark" ? "dark" : "light"); } catch (e) {}
+    </script>
   </head>
 
   <body class="app">
