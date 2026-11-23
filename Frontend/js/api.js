@@ -41,7 +41,7 @@ function classifyFailure(err) {
   return "offline";
 }
 
-async function serverFetch(endpoint, options = {}, { redirectOn401 = true } = {}) {
+async function serverFetch(endpoint, options = {}, { redirectOn401 = true, timeoutMs = REQUEST_TIMEOUT_MS } = {}) {
   if (browserSaysOffline()) {
     const err = new Error("You are offline");
     err.status = 0;
@@ -57,7 +57,7 @@ async function serverFetch(endpoint, options = {}, { redirectOn401 = true } = {}
   }
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -580,7 +580,7 @@ export const API = {
     if (browserSaysOffline() || isLocalId(id)) {
       throw new Error("Decision Master needs an internet connection and a synced customer");
     }
-    return serverFetch("/customers/" + id + "/decision-analysis", { method: "POST" } , {timeoutms : 30000});
+    return serverFetch("/customers/" + id + "/decision-analysis", { method: "POST" } , {timeoutMs : 30000});
   },
 
   async getSummary() {
