@@ -580,7 +580,7 @@ export const API = {
     if (browserSaysOffline() || isLocalId(id)) {
       throw new Error("Decision Master needs an internet connection and a synced customer");
     }
-    return serverFetch("/customers/" + id + "/decision-analysis", { method: "POST" });
+    return serverFetch("/customers/" + id + "/decision-analysis", { method: "POST" } , {timeoutms : 30000});
   },
 
   async getSummary() {
