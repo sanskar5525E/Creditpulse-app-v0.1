@@ -802,21 +802,32 @@ function applyTheme(theme) {
     }
   }
 
-  function updateDateHints() {
-    $("txnPaidDateText").textContent = $("txnPaidDate").value ? fmtDate($("txnPaidDate").value + "T00:00:00") : "Select date";
-    $("txnDueDateText").textContent = $("txnDueDate").value ? fmtDate($("txnDueDate").value + "T00:00:00") : "Select date";
+ function updateDateHints() {
+    $("txnPaidDateText").textContent = $("txnPaidDate").value
+      ? fmtDate($("txnPaidDate").value + "T00:00:00")
+      : "Select date";
+
+    $("txnDueDateText").textContent = $("txnDueDate").value
+      ? fmtDate($("txnDueDate").value + "T00:00:00")
+      : "Select date";
+
     const paid = $("txnPaidDate").value;
+
     $("paidHint").textContent =
-      (paid && paid === ymd(new Date()) ? "Today \u00B7 " : "") + "The date the payment was received.";
+      (paid && paid === ymd(new Date()) ? "Today · " : "") +
+      "The date the payment was received.";
+
     const n = daysFromToday($("txnDueDate").value);
     const hint = $("dueHint");
+
     hint.classList.toggle("late", n !== null && n < 0);
+
     hint.textContent =
       n === null ? "Pick the date payment is due."
       : n > 0 ? "Payment is due in " + n + (n === 1 ? " day." : " days.")
       : n === 0 ? "Payment is due today."
-      : "This date has passed \u2014 the amount will be overdue immediately.";
-  }
+      : "This date has passed — the amount will be overdue immediately.";
+}
 
   function fillTxnContext() {
     const { customer: c, metrics: m } = currentDetail;
