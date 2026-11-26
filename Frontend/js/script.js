@@ -802,15 +802,8 @@ function applyTheme(theme) {
     }
   }
 
- function updateDateHints() {
-    $("txnPaidDateText").textContent = $("txnPaidDate").value
-      ? fmtDate($("txnPaidDate").value + "T00:00:00")
-      : "Select date";
 
-    $("txnDueDateText").textContent = $("txnDueDate").value
-      ? fmtDate($("txnDueDate").value + "T00:00:00")
-      : "Select date";
-
+function updateDateHints() {
     const paid = $("txnPaidDate").value;
 
     $("paidHint").textContent =
