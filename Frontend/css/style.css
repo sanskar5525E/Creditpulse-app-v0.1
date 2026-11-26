@@ -541,8 +541,38 @@ html.app { --c-green-dark: #147a4d; --c-amber-dark: #8a5a00; }
   background: #fff; border: 1px solid var(--c-border); border-radius: 16px; height: 58px; padding: 0 20px; color: var(--c-muted);
 }
 .date-text { font-size: 18px; color: var(--c-text); }
-.date-box input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0; cursor: pointer; }
-.date-box input::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.date-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--input-bg, #fff);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  min-height: 58px;
+  padding: 0 16px;
+  gap: 12px;
+}
+
+.date-box input {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: 44px;
+  opacity: 1;
+  border: 0;
+  background: transparent;
+  color: var(--c-text);
+  font: inherit;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.date-box input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
 .btn-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .foot-note { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0; color: var(--c-muted); font-size: 14px; }
 .foot-note.center { text-align: center; }
