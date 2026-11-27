@@ -437,7 +437,6 @@
       import { supabase } from './supabase.js';
 
       async function checkAuth() {
-        const stored = localStorage.getItem('cp_session');
         if (stored) {
           try {
             const s = JSON.parse(stored);
