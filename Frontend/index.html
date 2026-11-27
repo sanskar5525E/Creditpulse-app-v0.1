@@ -437,17 +437,7 @@
       import { supabase } from './supabase.js';
 
       async function checkAuth() {
-        if (stored) {
-          try {
-            const s = JSON.parse(stored);
-            if (s?.access_token) {
-              await supabase.auth.setSession({ access_token: s.access_token, refresh_token: s.refresh_token });
-            }
-          } catch (e) {
-            console.warn('Failed to restore stored session', e);
-          }
-        }
-
+        // Read the session managed by Supabase. Do not restore an old cp_session copy.
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Auth error:', error);
